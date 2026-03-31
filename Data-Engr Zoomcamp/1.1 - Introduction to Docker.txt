@@ -1,0 +1,169 @@
+# CODESPACES:
+
+* Watch the video on how to create github codespace linked to visual studio code. Link of video in my gmail address. After setting up codespaces, type the following:
+
+* python --version, pip list, docker --version, 
+
+* install terraform on VSc terminal codespace. google hashicorp terraform download to get link. run terraform --version to get an output.
+
+* pip install jupyter --> after install, run jupyter notebook. ctrl c to shut it down
+
+
+# Run on VSC terminal codespace:
+
+* docker network create pg-network  --> to create a network in docker
+
+* docker volume create --name dtc_postgres_volume_local -d local  --> to create a volume for mapping to our postgres database directory.
+
+* docker network ls  --> to view/choose network list for running container. 
+
+# Run this postgres database container codes below afterwards:
+
+$ docker run -it \
+> -e POSTGRES_USER="root" \
+> -e POSTGRES_PASSWORD="root" \
+> -e POSTGRES_DB="ny_taxi" \
+> -v dtc_postgres_volume_local:/var/lib/postgresql/data \ --> volume map from local host to container
+> -p 5432:5432 \
+> --network=pg-network \
+> --name pg-database \
+> postgres:13
+
+* open a new terminal on vsc and run this pgadmin container simultaneously with the above: 
+
+$ docker run -it \
+> -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+> -e PGADMIN_DEFAULT_PASSWORD="root" \
+> -p 8080:80 \
+> --network=pg-network \
+> --name pgadmin \
+>   dpage/pgadmin4
+
+* go to port 8080 on the vsc terminal and click the browser icon to login to pgadmin. input admin@admin.com as email and root as password. in connection, input the name of the postgres database (pg-database in this case), username and password of the postgres database. 
+
+* ctrl c to stop both postgres database and pgadmin containers.
+
+* go to source control on vsc to commit and push codes to github repo.
+
+
+
+# DATA PIPELINE: process/service that gets data to produce more data. eg Python script gets a csv-format data (input/source data), processes the data and gives out the data as a Table in Postgres database (output/destination data). The source data goes into the data Pipeline with many resources (Python, Pandas, Postgres connection library etc) to give out the destination data. The resources in the Data Pipeline can run as a single docker container.
+Postgres database can run in isolation as a docker container on its own. This can be managed by pgAdmin. Docker helps with reproducibility i.e a docker image can run locally on host machine, then run on GKE or AWS Batch.
+
+# Docker is useful because it helps with:
+
+* Local experiments  --> running containers in isolation locally on host machine,
+* Integration test (CI/CD) --> learn Jenkins for this process,
+* Reproducibility
+* Running pipelines in the cloud  --> (AWS Batch, Kubernetes jobs),
+* Spark
+* Serverless (AWS Lambda, Google functions)
+
+
+# For this course, we make use Gitbash(MINGW64), a Linux-like environment for Windows running on Linux commands. WSL or github codespaces can also be used. On vsc codespace, do the following below:
+
+* mkdir docker_sql  --> create a folder called docker_sql. check to confirm if it's created.
+
+* cd docker_sql  --> change to the created directory docker_sql. run ls to list.
+
+* docker run hello-world  --> downloads image hello-world and runs the image to test if docker works. Ensure docker hub is running.
+
+* docker run -it ubuntu bash  --> run ubuntu image interactively inside its terminal. run ls to list. bash is a command or parameter to be executed for the image ubuntu. type exit or ctrl d. 
+
+* docker run -it python:3.10  --> downloads python image and run it interactively inside its terminal. You can do anything inside the python image: print('hello world'), import os, os.getenv. Type exit() or ctrl D
+
+* docker run -it --entrypoint=bash python:3.10  --> run bash command inside the python image to get a bash prompt. run ls to list
+
+* pip install pandas --> install pandas inside the downloaded python image.
+
+* run python, import pandas, pandas.__version__  
+
+
+# Note: if you exit the bash of python image/container above and run it again, pandas will not be present. To fix this, create a dockerfile.
+
+* code .  --> do this to start/open working directory in visual studio code editor 
+
+* create a dockerfile in the directory to specify our image container below:
+
+FROM python:3.10.1
+
+RUN pip install pandas
+
+ENTRYPOINT [ "bash" ]
+
+* docker build -t test:pandas .   --> build an image off the created dockerfile
+
+* docker run -it test:pandas  --> run the test image as container inside its terminal with entrypoint bash
+
+* type python, import pandas, pandas.__version__
+
+# create a new python file (data pipeline) on vsc named pipeline.py, type import pandas as pd and type anything else as below:
+
+import pandas as pd 
+
+# do some fancy stuff with pandas like loading a csv file
+
+print('job successfully executed for the day')
+
+* on the dockefile, input the following below:
+
+FROM python:3.10.1
+
+RUN pip install pandas
+
+WORKDIR /app
+COPY pipeline.py pipeline.py                  --> both pipeline.py are source and destination scripts
+
+ENTRYPOINT [ "bash" ]
+
+* docker build -t test:pandas .   --> build edited image off the created dockerfile
+
+* docker run -it test:pandas --> run image with the created app directory inside the terminal.
+
+* run pwd to view current directory, ls to list, python pipeline.py to run the print command in pipeline script
+
+
+# Edit the pipeline.py file by import sys for a specific day command line argument(argv) and to avoid running the container inside its terminal. the pipeline.py is below:
+
+import sys
+
+import pandas as pd 
+
+print(sys.argv)     --> all arguements, sys.argv[0] --> command line argument of the file
+
+day = sys.argv[1]    --> whatever command line argument we pass.
+
+print(f'job successfully executed for day = {day}')
+
+
+# Also, edit the dockerfile as below by overwriting the entrypoint with python and pipeline.py instead of bash
+
+FROM python:3.10.1
+
+RUN pip install pandas
+
+WORKDIR /app
+COPY pipeline.py pipeline.py                  
+
+ENTRYPOINT [ "python", "pipeline.py" ]
+
+* docker build -t test:pandas .   --> build edited image off the created dockerfile
+
+* docker run -it test:pandas 2024-01-15   --> run the sys argument for a specific day
+
+* docker run -it test:pandas 2024-01-15 123 hello  --> run all command line arguments in container.
+
+# Note: any edit done on the pipeline.py must be saved first, built as a docker image and run as a container.
+
+# Edit of the added data pipeline(pipeline.py):
+
+num = sys.argv[2]
+greet = sys.argv[3]
+
+print(f'job successfully executed for day = {day}')
+print(f'i made ${num} working on this particular day {day}')
+print(f'I said {greet} to my boss on this day {day} for the $ {num} paycheck') 
+
+* docker build -t test:pandas .
+
+* docker run -it test:pandas 2024-01-15 1000 thanks  --> the arguments beside the container can change

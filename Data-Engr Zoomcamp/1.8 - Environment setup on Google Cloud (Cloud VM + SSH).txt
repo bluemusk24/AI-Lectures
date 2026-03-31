@@ -1,0 +1,74 @@
+# Create an instance on Google Cloud. Generate an ssh key first to log into the instance on GCP. On terminal, do the following:
+
+* cd .ssh --> change directory to .ssh or mkdir .ssh if you have none
+
+* https://cloud.google.com/compute/docs/connect/create-ssh-keys, copy this codes ssh-keygen -t rsa -f ~/.ssh/KEY_FILENAME -C USERNAME -b 2048 --> for Linux or Mac
+
+* ssh-keygen -t rsa -f gcp -C eromosele -b 2048 --> replaces the above code on terminal. creating password is not compulsory.
+
+* ls --> view the created public key(gcp.pub) and private key(gcp)
+
+* click metadata from settings on compute engine on google cloud to add the public ssh key
+
+* cat gcp.pub --> copy the outcome and post on SSH key in metadata. click save and see this note above - All instances in this project inherit these SSH keys
+
+# create a VM instance from compute engine, choose name, closest region, machine type, edit boot disk to select ubuntu and 30Gig storage. After creating instance, copy the external IP of the instance. (34.66.153.164) in this case.
+
+* cd to home directory on terminal --> bluemusk@EROMOSELE:/mnt/c/Users/emman$ in my case
+
+* chmod 600 ~/.ssh/gcp --> run this to protect my private key gcp
+
+* ssh -i ~/.ssh/gcp eromosele@34.66.153.164(or the given IP) --> gcp=private key, eromosele=username from ssh keys, 34.66.153.164=external IP of our instance on google cloud. This connects our local machine to instance in Google cloud.
+
+* htop --> to see the instance (virtual machine) spec: 4 cores, 15.6 Gig. ctrl c to exit
+
+* run ls, gcloud --version  --> confirmation if gcloud works and view what it in the cloud
+
+# INSTANCE/VIRTUAL MACHINE CONFIGURATION:
+
+* wget https://repo.anaconda.com/archive/Anaconda3-2023.09-0-Linux-x86_64.sh  --> download anaconda with the latest link on their site.
+
+* bash Anaconda3-2023.09-0-Linux-x86_64.sh  --> read terms of service and wait for anaconda installation. run ls to see the downlaoded anaconda3, snap etc
+
+* open a new terminal and cd to .ssh directory
+
+* touch config  --> to create a config file for our ssh to our instance
+
+* code config  --> open vsc for the config file
+
+* input the following below in the config file on vsc: 
+
+Host de-zoomcamp                           		 --> Host-name for Identity file
+    HostName 104.197.145.113(recent IP)                  --> extenal IP of instance
+    User eromosele                            		 --> username for ssh keys
+    IdentityFile /home/bluemusk/.ssh/gcp  		 --> path of the private key on wsl 
+
+* cat config on terminal --> to view correct info in config file
+
+* cd back to home directory and run ssh <eroms-instance>. Ensure wsl with directory home>bluemusk>.ssh has the updated config file hostname(external IP of VM) and gcp keys.
+
+* less .bashrc --> executed file when we login to the instance. Run in the first connected terminal and run ctrl z to stopped
+
+
+# when you log back into an instance, it attaches (base) with the path, which is an indication anaconda works.
+
+* run which python  --> this gives anaconda python path in the base
+
+* run python, import pandas as pd, pd. __version__  --> to test if python and pandas works. run ctrl d or exit()
+
+* source .bashrc  --> do this also to maintain the bash (base)
+
+
+# Docker Installation on the Instance
+
+* type docker --> gives an output of docker not found
+
+* sudo apt-get update OR sudo apt update --> fetch latest update on instance
+
+* sudo apt install docker.io --> install docker on the instance
+
+# configuring vsc to access virtual machine instance de-zoomcamp
+
+* ensure Microsoft remote ssh is installed from extension on vsc
+
+*

@@ -1,0 +1,281 @@
+# Terraform is basically infrastructure as code for provisioning, versioning and storage. provided by Hashicorp. Providers are codes that allow terraform to communicate to managed resources on AWS, GCP, Azure, Kubernetes, VSphere, Alibaba Cloud, Oracle etc. Google Terraform providers for more info.
+
+# Key Terraform Commands:
+
+* Init --> to get the provider(codes) I need
+* Plan --> What am I about to do?
+* Apply --> do what is in the terraform files. eg build the infrastructure
+* Destroy --> remove everthing defined in the terraform files
+
+# On GCP console, create a service account from IAM, name=terraform-runner, service account description not compulsory to fill. Click create and continue. Under Role(services to create and destroy on GCP), select cloud storage and storage admin. Also, select Big query and Big query admin in the other role section.  Click continue and done. You can edit the created service account (adding more services) by clicking IAM, click edit principal below right and add compute engine, compute admin as another role (or any service as new role). You can create keys for your service account. keep the keys safe from access to anyone. Paste keys in the working directory, so there will be access to visual studio code.
+
+# on vsc, create a folder terrademo and put the main.tf file in the folder. get provider(codes) online from terraform google provider. codes of provider and provider configuration display below:
+
+terraform {
+  required_providers {
+    google = {
+      source = "hashicorp/google"
+      version = "5.14.0"
+    }
+  }
+}
+
+provider "google" {
+  project     = "my-project-id"
+  region      = "us-central1"
+}
+
+* copy downloaded link of terraform from hashicorp and paste in working terminal on visual studio code.
+
+* terraform --version --> to confirm if terraform is downloaded with its version. do this on vsc terminal
+
+* ctrl s on the main.tf file and run terraform fmt --> this format command should output main.tf
+
+* from GCP dashboard, copy project I'D and paste in project section of main.tf file. leave region as us-central1.
+
+# add this credentials code in the provider section of main.tf as shown below: this is hard coding
+
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "5.14.0"
+    }
+  }
+}
+
+provider "google" {
+  #credentials = "./terrademo/gcp-keys.json"   ---> google credentials path (hardcoding)
+  project = "quixotic-strand-383917"        --> project ID from gcp dashboard
+  region  = "us-central1"
+}
+
+* export GOOGLE_CREDENTIALS='/mnt/c/Users/emman/docker_sql/terrademo/gcp-keys.json'  --> this can also be used to add credentials instead of hardcoding. Do this in vsc terminal and press enter
+
+* echo $GOOGLE_CREDENTIALS  --> to test if our credentials above are added.
+
+* terraform init --> run to have access to provider with the downloaded gcp-keys. check the working directory for downloaded .terraform providers stuffs. the json keys gives access to the provider codes
+
+
+# To make a storage bucket on GCP with Terraform:
+
+* google terraform google cloud storage bucket to get codes for creating gcp bucket resource, paste in the main.tf
+
+resource "google_storage_bucket" "auto-expire" {
+  name          = "auto-expiring-bucket"
+  location      = "US"
+  force_destroy = true
+
+  lifecycle_rule {
+    condition {
+      age = 3
+    }
+    action {
+      type = "Delete"
+    }
+  }
+
+  lifecycle_rule {
+    condition {
+      age = 1
+    }
+    action {
+      type = "AbortIncompleteMultipartUpload"
+    }
+  }
+}
+
+# resource tells google it's a bucket. auto-expire is for us and can be changed to desired name. name variable is changed for uniqueness to me, use the project i'd as name variable. Edit is shown below: 
+
+resource "google_storage_bucket" "demo-bucket" {
+  name          = "quixotic-strand-383917-terra-bucket"
+  location      = "US"
+  force_destroy = true
+
+
+  lifecycle_rule {
+    condition {
+      age = 1
+    }
+    action {
+      type = "AbortIncompleteMultipartUpload"
+    }
+  }
+}
+
+* terraform plan --> run this on vsc terminal
+
+* terraform apply --> for deployment. Enter value: yes and check directory for newly created terraform.tfstate
+
+* on gcp, go to cloud storage > bucket, you will see the created bucket to be used for whatever
+
+* terraform destroy --> destroy the bucket if not using anymore. refresh bucket in gcp to confirm deletion. the terraform.tfstate has some deleted items in them too. check to confirm
+
+
+# Terraform Variable with Big Query Dataset...
+
+* google terraform bigquery dataset, pick the required variable to set up a gcp bigquery dataset. Use ctrl F to find the required variable for setup and leave optional out. copy the resource and datset_id codes and paste on vsc.
+
+* rename the dataset as demo-dataset. This is after resource.:
+
+resource "google_bigquery_dataset" "demo-dataset" {
+  dataset_id = "example_dataset"                  --> change name to demo_dataset or any name
+}
+
+* ctrl s main.tf and run terraform fmt --> for aligning the fields right
+
+* changed dataset_id name to "demo_dataset"
+
+* run terraform apply. thereafter, head to biquery on gcp to view dataset.
+
+* terraform destroy --> run this after viewing created storage and dataset.
+
+# create a newfile named variable.tf --> to declare various variables. See below for all created variables from top to bottom:
+
+* touch variable.tf --> another way on vsc terminal to create the file.
+
+* echo variable.tf  --> view the path
+
+* cat variable.tf  --> see details in the file. it should output nothing
+
+* code variable.tf  --> open a vsc for the variable.tf
+
+# Input the codes below in the variable.tf
+
+variable "location" {
+    description = "Project Location"
+    default = "US"  
+}
+
+
+variable "bq_dataset_name" {
+    description = "My BigQuery Dataset Name"
+    default = "demo-dataset"  
+}
+
+
+variable "gcs storage class" {
+    description = "Bucket storage class"
+    default = "STANDARD"
+  
+}
+
+
+variable "gcs bucket name" {
+    description = "My Bucket Name"
+    default = "quixotic-strand-383917-terra-bucket"
+}
+
+* on the main.tf, for biquery dataset field, add variable location = var.location. Do similar edit on main.tf file with variable names from variable.tf files. run terrform.fmt at interval after saving
+
+* variable.tf
+
+variable "project" {
+  description = "Project"
+  default     = "quixotic-strand-383917"
+}
+
+
+variable "region" {
+  description = "Region"
+  default     = "us-central1"
+}
+
+
+variable "location" {
+  description = "Project Location"
+  default     = "US"
+}
+
+
+variable "bq_dataset_name" {
+  description = "My BigQuery Dataset Name"
+  default     = "demo_dataset"
+}
+
+
+variable "gcs_storage_class" {
+  description = "Bucket storage class"
+  default     = "STANDARD"
+
+}
+
+
+variable "gcs_bucket_name" {
+  description = "My Bucket Name"
+  default     = "quixotic-strand-383917-terra-bucket"
+}
+
+* main.tf after editing
+
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "5.14.0"
+    }
+  }
+}
+
+
+provider "google" {
+  #credentials = "./terrademo/gcp-keys.json"
+  project = var.project
+  region  = var.region
+}
+
+
+resource "google_storage_bucket" "demo-bucket" {
+  name          = var.gcs_bucket_name
+  location      = var.location
+  force_destroy = true
+
+  lifecycle_rule {
+    condition {
+      age = 1
+    }
+    action {
+      type = "AbortIncompleteMultipartUpload"
+    }
+  }
+}
+
+
+resource "google_bigquery_dataset" "demo-dataset" {
+  dataset_id = var.bq_dataset_name
+  location   = var.location
+}
+
+* run terraform plan
+* run terraform apply
+* terraform destroy
+
+# unset can be used with the credentials if you want to create a variable for credentials (keys) in the variable.tf
+
+* echo $GOOGLE_CREDENTIALS  --> to view path of the keys attached to main.tf
+
+* unset GOOGLE_CREDENTIALS  --> to detach path of the gcp downloaded keys from main.tf
+
+* echo $GOOGLE_CREDENTIALS --> this should give a blank response for confirmation of key detachment.
+
+* terraform plan --> outputs error bcos no keys/crentials is attached to our gcp project.
+
+# set a credential variable in the variable.tf file and attach to the main.tf. check working directory for this. credential variable.tf and main.tf codes below:
+
+variable "credentials" {
+  description = "My Credentials"
+  default     = "/mnt/c/Users/emman/docker_sql/terrademo/gcp-keys.json"  --> or the required path
+}
+
+provider "google" {
+  credentials = file(var.credentials)
+  project = var.project
+  region  = var.region
+}
+
+* run terraform plan
+* run terraform apply
+* terraform destroy  --> refresh gcp for confirmation of destroyed resources
+
+
+# Note: do not push your codes to github alongside gcp-keys.json (gcp keys) to avoid hack into your gcp account.

@@ -1,0 +1,56 @@
+# Since we ran 2 containers for pgAdmin and Postgress, docker-compose can help to run multiple containers as a single unit (yaml file). Run docker compose to confirm if it's installed on the path terminal
+
+# create a new file titled docker-compose.yaml in the working directory. type services and enter and write one by one the following codes below in the yaml file, for both the pgdatabase and pgAdmin containers. We do not need network bcos that will be done automatically since it's a docker-compose file:
+
+* docker volume create dtc_postgres_volume_local --> create this volume b4 running the yaml file for both containers.
+
+* docker volume ls --> to check created volume above. Then run docker-compose up for both pgadmin and postgres
+
+services:
+  pgdatabase:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=ny_taxi
+    volumes: 
+      - "dtc_postgres_volume_local:/var/lib/postgresql/data:rw"
+    ports:
+      - "5432:5432"
+  pgAdmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - "8080:80"
+volumes:
+  dtc_postgres_volume_local:
+    external: true               --> this injects data into the table (schema) in postgres on pgadmin 
+
+* stop both running containers for postgres and pgAdmin in their various terminials. 
+
+* run docker ps --> to see running containers.
+
+* docker-compose up --> to run the docker-compose.yaml file of both containers
+
+# on the browser, refresh localhost:8080 and enter. pgadmin pops up, input email id and password to login.
+
+* right click under Servers to register a new server. in Register-server name=Docker localhost, in connection, hostname=pgdatabase (name of connection to postgres database), username=root and password=root
+
+# Note: always watch out for hostname changes in connection under pgAdmin.s
+
+* click save
+
+# click drop-down icon in this format: Docker Localhost-Databases-ny_taxi-Schemas-Tables. right click on yellow_taxi_trips, scroll to view/edit data and click any of the options.
+
+# click drop-down icon in this format: Docker Localhost-Databases-ny_taxi-Schemas-Tables. right click on yellow_taxi_trips, click on query tool and input these commands: 
+
+SELECT COUNT(1) FROM yellow_taxi_data; --> Click run icon and Data output is shown below.
+
+* ctrl c and/or docker-compose down --> to stop running compose.yaml file in terminal.
+
+* docker-compose up -d --> run the docker-compose.yaml file of both containers in detach mode, gives terminal back.
+
+* docker-compose down  --> to stop the docker-compose.yaml file of both containers
+

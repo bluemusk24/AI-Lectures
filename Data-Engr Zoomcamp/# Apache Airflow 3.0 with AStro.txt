@@ -1,0 +1,13 @@
+# Apache Airflow 3.0 with AStro
+
+* https://github.com/astronomer/airflow-3-demos/tree/airflow-3-mars-demo?tab=readme-ov-file --> create a codespace on this GitHub link. Also, a vs code off the codespace
+
+* astro version
+
+* astro dev init --> create some folders in the repo by initializing astro
+
+* astro dev start --> spin up Astro server by building images and running containers. 
+
+* localhost:8080 on the browser to see Airflow UI
+
+* run all the python scripts for orchestration of the data pipelines. Use @assets (combining different data), @dags (combination of different tasks @tasks) where necessary.

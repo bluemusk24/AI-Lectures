@@ -1,0 +1,89 @@
+# Run Postgres locally with Docker and ingest data into Postgres Database with the codes below on vsc:
+# Use gitbash or Ubuntu 22.04 wsl terminal or codespace terminal
+
+* open a folder named ny_taxi_postgres_data in the working directory. volumes map the folder in postgres container to folder in host machine to prevent loss of files. This is known as mounting
+
+* official docker image for postgres database.
+
+docker run -it \
+> -e POSTGRES_USER="root" \
+> -e POSTGRES_PASSWORD="root" \
+> -e POSTGRES_DB="ny_taxi" \
+> -v $(pwd)/ny_taxi_postgres_data:/var/lib/postgresql/data \  --> volumes maps folder/file in container to host machine. use the current path for the volume by typing pwd to copy it, if using winodws.  
+> -p 5432:5432 \   --> map port in our host machine to postgres database container
+> postgres:13
+
+* sudo chmod a+rwx ny_taxi_postgres_data  --> run this if the ny_taxi_postgres_data folder has nothing in it.
+
+
+# Alternatively map volume with code below if error occurs with the -v above:
+
+* docker volume create --name dtc_postgres_volume_local -d local  --> to create a volume for mapping to our postgres database directory incase of errors.
+
+docker run -it \
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v dtc_postgres_volume_local:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  postgres:13
+
+
+# open another terminal window to access postgres database using cli client
+
+* pip install pgcli  ---> t=for installation of pgcli
+
+* pgcli --help --> get more info of pgcli
+
+* pgcli -h localhost -p 5432 -u root -d ny_taxi  --> login to postgres database. -h(host)=localhost, -p(port)=5432, -u(username)=root, -d(dbname/database name)=ny_taxi. Input password 'root' after running.
+
+* \dt --> list tables in the postgres database. we get nothing bcos we havent created anything yet
+
+* \dT --> list data types in the postgres database. 
+
+* SELECT 1; --> to select 1 column
+
+# Open Jupyter notebook for Python to load and use the dataset: either open via anaconda or open through another terminal. Navigate to the working directory on jupyter and open a new notebook, rename as Upload Data(or any dame of choice). Load the first 100rows of the dataset with pandas.
+
+# Put the dataset into postgresSQL with the following on jupyter/pandas: generate a sql schema/DDL= Data definition language (an instruction) to create a table indicating different kinds of columns and types.
+
+# create a connection to postgres so we input our DDL into the postgres database. All is done in the jupyter notebook. pip install sqlalchemy and psycopg2 if not using anaconda. We separate our data into chunks, create a database table with the headers(column names) first and later insert the chunks row by row.
+
+* run \dt on the pgcli terminal ---> list tables(headers) in the postgres database
+
+* \d yellow_taxi_data or <any name of data> --> to describe the data in mysql
+
+* Now, insert the 100000 data chunks and ensure it's timed. Do this on jupyter notebook.
+
+* run SELECT COUNT(1) FROM yellow_taxi_data;  --> to count inputted data
+
+* insert the rest chunks of the dataframe into our table in the database. do this on jupyter notebook:
+from time import time
+while True:
+    t_start = time()
+    
+    df = next(df_iter)
+    
+    df['tpep_dropoff_datetime'] = pd.to_datetime(df['tpep_dropoff_datetime'])
+    df['tpep_pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
+
+    df.to_sql(name='yellow_taxi_data', con=engine, if_exists='append') 
+
+    t_end = time()
+
+    print('inserted other chunks, it took %.3f seconds' % (t_end - t_start))
+
+* run SELECT COUNT(1) FROM yellow_taxi_data;  --> to count inputted data. It should give over 1.3 million rows of the the entire NY_taxi dataset
+
+* SELECT MAX(tpep_pickup_datetime), MIN(tpep_pickup_datetime), MAX(total_amount) FROM yellow_taxi_
+ data;  --> gives max pickup time, min pickup time and max amount paid. Lower cases max and min can be used.
+
+* less <data name>  --> linux command to view little info of the dataset on terminal. ctrl z to stop
+
+* head -n 100 <data name> --> linux command to view 100 rows of the dataset on terminal
+
+* wc -l <data name> --> linux command to view total rows of the dataset on terminal
+
+* ls -lh --> view complete info of all files in the directory
+
+

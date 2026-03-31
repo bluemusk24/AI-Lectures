@@ -1,0 +1,149 @@
+Ingesting of script/downloading of data into data pipeline is usually done with airflow, but this method below is the manual (quick and dirty) way of script ingestion. 
+
+
+*  jupyter nbconvert --to script 'Upload Data.ipynb'  --> convert the jupyter file to python script, clean the script to desired state and rename the script as ingest_data.py. ingestion is take something(data) and put in your database.
+
+* import argparse and input the argparse code below in the inges_data.py --> to configure and parse command line arguments like user, password, localhost, port, database name, table-name etc. 
+
+* import os ---> put this with other imports at the top of ingest_data.py script and write os.system(f'wget {url} -O {csv_name}') to the function code as shown above.
+
+* in the same ingest_data.py, input a function with the other codes as shown below: 
+
+def main(params):
+    user = params.user
+    password = params.password
+    host = params.host
+    port = params.port
+    db = params.db
+    table_name = params.table_name
+    url = params.url
+    csv_name = 'output.csv'     --> input this codes to import the output.csv
+    
+    os.system(f'wget {url} -O {csv_name}')               # download the csv
+    
+    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')  
+    
+    df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000)
+
+    df = next(df_iter)   
+
+    df['tpep_dropoff_datetime'] = pd.to_datetime(df['tpep_dropoff_datetime'])
+    df['tpep_pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
+
+    df.head(0).to_sql(name=table_name, con=engine, if_exists='replace')      
+
+
+    df.to_sql(name=table_name, con=engine, if_exists='append')
+
+
+    while True:                                               
+        t_start = time()
+    
+        df = next(df_iter)
+    
+        df['tpep_dropoff_datetime'] = pd.to_datetime(df['tpep_dropoff_datetime'])
+        df['tpep_pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
+
+        df.to_sql(name=table_name, con=engine, if_exists='append') 
+
+        t_end = time()
+
+        print('inserted other chunks, it took %.3f seconds' % (t_end - t_start))
+
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Ingest CSV data to postgres')
+
+    parser.add_argument('--user', help='user name for postgres')
+    parser.add_argument('--password', help='password for postgres')
+    parser.add_argument('--host', help='host for postgres')
+    parser.add_argument('--port', help='port for postgres')
+    parser.add_argument('--db', help='database name for postgres')
+    parser.add_argument('--table_name', help='name of table where we will write results to')
+    parser.add_argument('--url', help='url of the csv file')
+
+    args = parser.parse_args()
+
+    main(args)
+
+
+# Before testing the ingest-data.py script, head over to pgAdmin, drop the Table with these codes:
+
+* DROP TABLE yellow_taxi_data; --> this query drops/deletes the table on pgadmin
+
+* SELECT COUNT(1) FROM yellow_taxi_data;  --> error confirmation of dropped table
+
+* URL = "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" --> put this in the terminal before running the below code and ensure the .csv.gz file is changed to .csv file: (by adding sep = ',', index_col = False and dtype = 'unicode' in the df_iter dataframe) or (by adding compression='gzip', quotechar='"' in the df_iter dataframe).
+
+* if the above does not work, input the code below in the main function of ingestion.py after the following imports: import gzip and import shutil. This is not neccessary bcos it worked.
+
+    with gzip.open('yellow_tripdata_2021-01.csv.gz', 'rb') as f_in:
+        with open(csv_name, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+* run the code below to test ingestion.py in a new terminal:
+python ingest-data.py \
+  --user=root \
+  --password=root \
+  --host=localhost \
+  --port=5432 \
+  --db=ny_taxi \
+  --table_name=yellow_taxi_trips \
+  --url=${URL}
+
+* $? --> to view error code. 1 or any non-zero means it was not successful. 0 means successful.
+
+# Refresh the pgAdmin, click drop-down icon in this format: Docker Localhost-Databases-ny_taxi-Schemas-Tables. right click on yellow_taxi_trips, click on query tool and input these commands:
+
+* SELECT COUNT(1) FROM yellow_taxi_trips; --> Click run icon and Data output is shown below.
+
+* SELECT MAX(tpep_pickup_datetime), MIN(tpep_pickup_datetime), MAX(total_amount) FROM yellow_taxi_
+ trips;  --> Click run icon and Data output is shown below.
+
+# Dockerizing the Ingestion Script. put this codes below in the dockerfile: psycopg2 is a python library for accesing postgreSQL.
+
+FROM python:3.10.1
+
+RUN apt-get install wget
+RUN pip install pandas sqlalchemy psycopg2
+
+WORKDIR /app
+COPY ingest_data.py ingest_data.py                  
+
+ENTRYPOINT [ "python", "ingest_data.py" ]
+
+* docker build -t taxi_ingest:v001 . --> build the docker image of the ingest_data.py dockerfile above
+
+* python3 -m http.server --> to start http-server with python on the outcome port 8000
+
+* on a browser, type localhost:8000 --> this gives the files in the working directory.
+
+* ifconfig --> get the inet IP. on a browser, type <inet IP>:8000 on a browser  --> get files in the working directory. 
+
+* copy link of the required file and use it as new URL and run on terminal like this: 
+URL="http://127.0.0.1:8000/yellow_tripdata_2021-01.csv.gz"
+
+* run the container code below with the specified new URL. 
+
+docker run -it \
+  --network=pg-network \
+  taxi_ingest:v001 \
+    --user=root \
+    --password=root \
+    --host=pg-database \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=yellow_taxi_trips \
+    --url=${URL}
+
+* refresh pgadmin 
+
+These procedures are for running locally on your computer. In real life, you have a URL to a database that runs in the cloud and you execute the data with Bigquery.
+
+# Just as an aside:
+
+* docker ps --> view running containers
+
+* docker kill <container-id> --> destroy the running container

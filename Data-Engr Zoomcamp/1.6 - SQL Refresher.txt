@@ -1,0 +1,159 @@
+* Read the taxi+_zone_lookup dataset on jupyter and connect to Postgres database via create_engine method. Insert the taxi+_zone_lookup dataset into the Pgadmin/PostgresSql database. Codes for this process are on jupyter notebook. Refresh pgadmin to see if a table called zones is created.
+
+* SELECT COUNT(1) FROM zones;  --> run this in pgadmin for testing if it works
+
+* SELECT * FROM public.zones / SELECT * FROM zones;  --> either code to view all the zones
+
+* SELECT * FROM <zones/any name> LIMIT 100;  --> view query the first 100 rows of the dataset table.
+
+# Join query of yellow_taxi_trips Pickup-Location(PULocationID), Dropoff-Location(DOLocationID) with zones LocationID:
+
+* SELECT
+	*
+FROM
+	yellow_taxi_trips t,             --> t, zpu, zdo are all aliases.
+	zones zpu,
+	zones zdo
+WHERE
+	t."PULocationID" = zpu."LocationID" AND
+	t."DOLocationID" = zdo."LocationID"
+LIMIT 100;
+
+# another join query of both zones and yellow_taxi_trips: both query below are the same
+
+* SELECT
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	CONCAT(zpu."Borough", ' / ', zpu."Zone") AS pickup_loc,
+	CONCAT(zdo."Borough", ' / ', zdo."Zone") AS dropoff_loc
+FROM
+	yellow_taxi_trips t,
+	zones zpu,
+	zones zdo
+WHERE
+	t."PULocationID" = zpu."LocationID" AND
+	t."DOLocationID" = zdo."LocationID"
+LIMIT 100;
+
+* SELECT
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	CONCAT(zpu."Borough", ' / ', zpu."Zone") AS pickup_loc,
+	CONCAT(zdo."Borough", ' / ', zdo."Zone") AS dropoff_loc
+FROM
+	yellow_taxi_trips t 
+	JOIN zones zpu ON t."PULocationID" = zpu."LocationID"
+	JOIN zones zdo ON t."DOLocationID" = zdo."LocationID"
+LIMIT 100;
+
+# query to check for missing values in yellow_taxi_trips:
+
+SELECT 
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	"PULocationID",
+	"DOLocationID"
+FROM
+	yellow_taxi_trips t
+WHERE 
+	"DOLocationID" is NULL
+
+# ids present in yellow_taxi_trips table and not in zones table:
+
+SELECT 
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	"PULocationID",
+	"DOLocationID"
+FROM
+	yellow_taxi_trips t
+WHERE 
+	"DOLocationID" NOT IN (SELECT "LocationID" FROM zones)
+
+SELECT 
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	"PULocationID",
+	"DOLocationID"
+FROM
+	yellow_taxi_trips t
+WHERE 
+	"PULocationID" NOT IN (SELECT "LocationID" FROM zones)
+
+# Delete query in SQL
+
+* DELETE FROM zones WHERE "LocationID" = 142;
+
+# LEFT JOIN : show table of present records on the left (yellow_taxi_trips) matches absent records on the right(zones). RIGHT JOIN is the reverse of LEFT JOIN
+
+SELECT
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	CONCAT(zpu."Borough", ' / ', zpu."Zone") AS pickup_loc,
+	CONCAT(zdo."Borough", ' / ', zdo."Zone") AS dropoff_loc
+FROM
+	yellow_taxi_trips t 
+	LEFT JOIN zones zpu ON t."PULocationID" = zpu."LocationID"
+	LEFT JOIN zones zdo ON t."DOLocationID" = zdo."LocationID"
+LIMIT 100;
+
+# Groupby- select the day from datetime pickup:
+
+* Select
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	DATE_TRUNC('Day', tpep_pickup_datetime)   --> selects just the day and removes time
+From
+	yellow_taxi_trips t
+
+OR 
+
+* Select
+	tpep_pickup_datetime,
+	tpep_dropoff_datetime,
+	total_amount,
+	CAST(tpep_dropoff_datetime as DATE)   --> selects just the date
+From
+	yellow_taxi_trips t
+
+* Select
+	CAST(tpep_dropoff_datetime AS date) AS "day",
+	count(1)
+From
+	yellow_taxi_trips t
+Group by 
+	CAST(tpep_dropoff_datetime as date)
+order by "day" asc;
+
+* Select
+	cast(tpep_dropoff_datetime as date) as "day",
+	count(1) as "count",
+	Max(total_amount),
+	Max(passenger_count)
+From
+	yellow_taxi_trips t
+Group by 
+	cast(tpep_dropoff_datetime as date)
+order by "count" desc 
+
+* Select
+	cast(tpep_dropoff_datetime as date) as "day",
+	count(1) as "count",
+	Max(total_amount),
+	Max(passenger_count)
+From
+	yellow_taxi_trips t
+Group by 
+	cast(tpep_dropoff_datetime as date)
+order by 
+	"day" desc 
+	"passenger_count" ASC
+
+# SQL query commands will be used more in Analytical engineering.

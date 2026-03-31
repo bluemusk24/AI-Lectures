@@ -1,0 +1,97 @@
+# Data Load Tool (DLT) Fundamentals:
+* DLT is an open-source python library for extracting data, transforming/normalizing data and loading data from source to destination. DLT is used by Data engineers or anyone who works with data.
+* Data engineers are the architects of data world, they build a pipeline that moves and transforms data into something useful. They extract data, transform it and load it into storage systems, turning raw information into analysis. Data engineers write detailed pipelines.
+* ETL pipeline is when you extract data from a source(API, database, files), transform the data and load the data into another source(data warehouse, cloud warehouse, database or any place you want). DLT pipeline helps with extracting, transforming and loading data. 
+
+# Note: ML engineers and data scientists working with data should know bits of data engineering.
+
+# Every data engineer works with sorting unstructured/nested data into a structured data to create a schema. Schema evolution is updating the schema when there are changes in the data - data types, columns, keys - etc. This can be done with dlt
+
+# DLT involves installation with pip and creating a pipeline in any python-enabled environment. DLT contains DE best practices:
+* Schema evolution - updating schema for new changes automatically
+* Data Contracts - evolve, freeze 
+* Incremental Loading - loading new or changed data instead of entire dataset
+* Performance management - provides mechanism and configuration options to manage performance and scale up pipelines.
+
+# DLT is database agnostic - meaning it can be loaded into any database
+
+# DLT sources:
+* high-level declarative Rest API source
+* Low-level Rest API Client
+* Pure python requests
+* Any kind of database - Postgres, SQL etc.
+* Google sheets, GitHub, HubSpot, stripe, Notion etc.
+
+# DLT destinations:
+* DuckDB, Postgres, Snowflake, BigQuery, datastores, data lakes, Datawarehouse etc.
+
+# How DLT works:
+* extract - fetch data from source and write to local disk as json, parquet or any files.
+* normalize - read extracted data from local disk, infer schema and transform data to local disk.
+* load - read normalized data from local disk and ingest into destination system.
+
+# The notebook for dlt pipeline is done on Saturn cloud. check codes on dlt_lectures.ipynb or google colab dlt_lecture1.ipynb
+
+
+
+# Downloading Ollama for RAG on Google Colab using LanceDB as the vector database:
+
+* !curl -fsSL https://ollama.com/install.sh | sh --> Install Ollama into the notebook's local runtime
+
+* !nohup ollama serve > nohup.out 2>&1 &  --> Start Ollama using ollama serve. This needs to run in the backgound - so we run it using nohup (to see the output log, open nohup.out).
+
+* %%capture
+!ollama pull llama2-uncensored  --> Pull the desired model. We're going to be using llama1-uncensored
+
+* !pip install ollama and import ollama  --> pip install ollama and import it
+
+* LanceDB can store metadata and vector embeddings of each document or text.
+
+
+# Codes to retrieve response given a certain query from a database:
+
+*def retrieve_context_from_lancedb(dbtable, question, top_k=2):
+
+    query_results = dbtable.search(query=question).to_list()
+    context = "\n".join([result["content"] for result in query_results[:top_k]])
+
+    return context
+
+
+# Codes to modify the retrievals with llama model with Promppt
+
+* def main():
+  # Connect to the lancedb table
+  db = lancedb.connect(".lancedb")
+  dbtable = db.open_table("notion_pages___employee_handbook")
+
+  # A system prompt telling ollama to accept input in the form of "Question: ... ; Context: ..."
+  messages = [
+      {"role": "system", "content": "You are a helpful assistant that helps users understand policies inside a company's employee handbook. The user will first ask you a question and then provide you relevant paragraphs from the handbook as context. Please answer the question based on the provided context. For any details missing in the paragraph, encourage the employee to contact the HR for that information. Please keep the responses conversational."}
+  ]
+
+  while True:
+    # Accept user question
+    question = input("You: ")
+
+    # Retrieve the relevant paragraphs on the question
+    context = retrieve_context_from_lancedb(dbtable,question,top_k=2)
+
+    # Create a user prompt using the question and retrieved context
+    messages.append(
+        {"role": "user", "content": f"Question: '{question}'; Context:'{context}'"}
+    )
+
+    # Get the response from the LLM
+    response = ollama.chat(
+        model="llama2-uncensored",
+        messages=messages
+    )
+    response_content = response['message']['content']
+    print(f"Assistant: {response_content}")
+
+    # Add the response into the context window
+    messages.append(
+        {"role": "assistant", "content":response_content}
+    )
+

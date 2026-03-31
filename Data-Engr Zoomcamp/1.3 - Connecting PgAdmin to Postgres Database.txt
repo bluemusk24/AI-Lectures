@@ -1,0 +1,66 @@
+# Since it's not convenient to query postgres(write commands) with pgcli, we use a convenient tool called PGAdmin, which is a web-based GUI tool to interact with Postgres database. We can write tables and see the results as actual table. we don't install it, rather we use a docker image that contains the tool. google pgadmin docker for info of the pgadmin container.
+
+
+* ctrl D on the pgcli terminal --> outputs Goodbye!
+
+* run the pgadmin container code below: wait till it initializes by showing booting worker with pid
+ docker run -it \
+ -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \       --> email of admin
+ -e PGADMIN_DEFAULT_PASSWORD="root" \               --> admin password
+ -p 8080:80 \                                       --> port map of host machine to pgadmin container
+  dpage/pgadmin4                                    --> container name
+
+* on a new browser, type localhost:8080 and enter. pgadmin pops up, input email id and password to login.
+
+* right click under Servers to register a new server. in Register-server name=Local docker, in connection, hostname=localhost, username=root and password=root
+
+* click save --> outputs an error unable to connect to server. fix this error by creating a network
+
+# We create a network to link pgadmin and our postgres database containers so they communicate using localhost.
+
+* ctrl c on both pgadmin and postgres database terminals to stop them.
+
+* docker network create pg-network --> create a network on postgres database terminal
+
+# run the postgres database container with network as below:
+docker run -it \
+ -e POSTGRES_USER="root" \
+ -e POSTGRES_PASSWORD="root" \
+ -e POSTGRES_DB="ny_taxi" \
+ -v dtc_postgres_volume_local:/var/lib/postgresql/data \
+ -p 5432:5432 \
+ --network=pg-network \                      # created network
+ --name pg-database \                        # connection name for pgadmin to discover postgres
+ postgres:13
+
+* pgcli -h localhost -p 5432 -u root -d ny_taxi  --> run this confirm if our postgres database still has the data.
+
+* SELECT COUNT(1) FROM yellow_taxi_data; --> to confirm if postgres database works with data counts.
+
+* SELECT max(tpep_pickup_datetime), min(tpep_pickup_datetime), max(total_amount) FROM yellow_taxi_
+ data; --> to confirm if postgres database works with max and min commands
+
+# Run the pgadmin container with the created network on postgress database with this code:
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root" \
+  -p 8080:80 \
+  --network=pg-network \
+  --name pgadmin-2 \
+  dpage/pgadmin4
+
+# on the browser, refresh localhost:8080 and enter. pgadmin pops up, input email id and password to login.
+
+* right click under Servers to register a new server. in Register-server name=Docker localhost, in connection, hostname=pg-database (name of created network of postgres database), username=root and password=root
+
+* click save
+
+# click drop-down icon in this format: Docker Localhost-Databases-ny_taxi-Schemas-Tables. right click on yellow_taxi_data, scroll to view/edit data and click any of the options.
+
+# click drop-down icon in this format: Docker Localhost-Databases-ny_taxi-Schemas-Tables. right click on yellow_taxi_data, click on query tool and input these commands: 
+
+* SELECT COUNT(1) FROM yellow_taxi_data; --> Click run icon and Data output is shown below.
+
+* SELECT MAX(tpep_pickup_datetime), MIN(tpep_pickup_datetime), MAX(total_amount) FROM yellow_taxi_
+ data;  --> Click run icon and Data output is shown below.
+
