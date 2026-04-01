@@ -1,0 +1,1868 @@
+BUILD LARGE LANGUAGE MODELS FROM SCRATCH
+
+###############################################################################################################################################################
+Lecture 1: Introduction
+
+* Explanation of how LLMs work, with some definitions. Also, deep dive into the course outline.
+
+* LLMs - These are deep neural networks trained on massive amount of data, that understand, generate and respond to human-like texts. The large in LLMs indicate they contained billions of parameters. They are built on the transformer architecture.
+
+###############################################################################################################################################################
+Lecture 2: Basics of LLMs
+
+* AI - machines that perform task using human-like intelligence without being programmed to do such tasks. 
+
+* ML - algorithms trained on massive amount of data, to draw patterns and make predictions based on the a new/unseen dataset. e.g. decision trees, random forest
+
+* DL - a subset of ML, that involves neural networks (collection of neurons), connected together like the human brain. It has input layer, hidden layers and output layers.
+
+* LLMs - refer to lecture 1 for definition. They are used for content creation, text summarization, sentiment analysis, chatbots, machine translation etc.
+
+* Generative AI - a combination of LLMs and Deep Learning used to generate text, videos, images, audio etc.
+
+###############################################################################################################################################################
+Lecture 3: Stages of Building LLMs (Pretraining LLMs Vs Finetuning LLMs)
+
+* Pretraining - training an LLM on a large, diverse and huge unlabeled datasets (raw texts). This LLMs predict the next token, and can perform other tasks which it was not trained on - such as: answering MCQ, machine translation, text summarization, sentiment analysis etc. Pretraining is done on unlabeled dataset (autoregressive). Pretrained LLMs are also Foundational models.
+
+* Finetuning - refinement of pretrained LLMs on a narrower dataset, specific to your particular task or domain. Finetuning is done on labelled datasets. Examples: answering MCQ, machine translation, text summarization, sentiment analysis, classification etc.
+
+* 2 categories of Finetuning :
+- Instruction Finetuning (Question/Answer pairs) 
+- Classification Finetuning ( e.g. Ham/Spam labelled dataset)
+
+###############################################################################################################################################################
+Lecture 4: Transformers
+
+* Watch the lecture video for knowledge 
+
+* Simple Transformer processes for machine translation: (Input text --> Token Preprocessing --> Encoder --> Vector embeddings --> Decoder --> Output)
+
+* Self Attention is all you need (focus on a long range of text sentences to know actual tokens)
+
+* BERT (Bidirectional Encoding Representation Transformers - predict missing words in a sentence) and GPTs (Generative Pretrained Transformers - Decoder only, predict next tokens.)
+
+* Not all LLMs task involve the Transformer architecture. Computer Vision tasks can also use the Transformer Architecture (Vision Transformer)
+
+* LLM tasks also make use of Recurrent neural network and Long-Short-Term memory to predict text... (before the advent of transformer architecture).
+
+###############################################################################################################################################################
+Lecture 5: How GPTs (3,4) Work
+
+* Zero Shot Learning: the model depends on natural language to generate texts. No examples needed.
+
+* One Shot Learning: the model sees just one example (hints) before generating texts.
+
+* Few Shot: the model sees few examples (hints) before generating texts. 
+
+* GPT-3 is a few shot learner, which depends on few examples to generate next tokens.
+
+* GPT-4 is both zero-shot learner and few-shot learner, but it works better as a few-shot learner.
+
+* GPTs are auto-regressive bcos they are trained on unlabeled dataset (unsupervised), and previous outputs are used as inputs for future predictions (Self-Supervised Learning).
+
+* Emergent Behavior: when the pretrained LLM performs other tasks it was trained on. e.g. sentence translation, text summarization etc.
+
+###############################################################################################################################################################
+Lecture 6: Stages of Building an LLM from Scratch 
+
+* Stage 1: Building the LLM
+- Data Preparation, Sampling, Tokenization, Vector Embeddings
+- Attention Mechanism
+- LLM Architecture
+
+* Stage 2: Pretraining a Foundational Model
+- Training Loop
+- Model Evaluation   (Cross Entropy Loss on Training and Validation input and Target tensors
+- Load Pretrained Weights
+
+* Stage 3: Finetuning Pretrained LLM with a Labelled Dataset
+- Classifier
+- Instruction tuned Personal Assistant (Question/Answer)
+
+###############################################################################################################################################################
+Lecture 7: LLM Tokenizer with Python  (Tokenizer.ipynb notebook)
+
+* Steps:
+- Convert the dataset into individual words (tokens)
+- Get the token ID from each token
+- Convert the token ID into vector representation
+- Add tokens "|unk|" for missing words in the dataset and "|end-of-text|" for combining different datasets in sequence.
+- decode each token IDs back into tokens.
+
+###############################################################################################################################################################
+Lecture 8: GPT Tokenizer (BYTE-PAIR ENCODING)  (Tokenizer.ipynb notebook) ----> WATCH THE LECTURE VIDEO AGAIN IF CONFUSED
+
+* Tokenization Algorithms:
+
+- Words based tokenizer --> it has limitations because it does not account for words (tokens) not in the dataset. Also, semantic meaning of words is lost (e.g. boy != boys in meaning)
+
+- Character based tokenizer --> splits every character into tokens and assign a token ID to each character. Limitations is: the meaning associated with words is completely lost and the tokenized sequence is much longer than the initial raw text.
+
+- Sub-words based tokenizer --> Used by GPT byte tokenizer. It has 2 major rules:
+1. Do not split frequently used words into smaller sub-words. 
+2. Split the rare words into smaller meaningful sub-words.
+3. Example: boy and boys (boy and boys should not be split if frequent in the dataset; but if necessary, it should be split into characters (boys == boy, s)
+
+- Advantages of Sub-words based Tokenization:
+1. Sub-words retain the root-word meaning of words. e.g. token, tokens, tokenizer with token as the root word
+2. It helps the model to understand that TOKENIZATION AND MODERNIZATION have different root words but the same suffix (ization)
+
+* BYTE Pair Encoding Algorithm (BPE) is a sub-word Tokenization Algorithm: 
+
+- If a dataset contains common byte pairs, replace the byte pairs with a byte not present in the data  eg. (aaadbaadb), aa can be replace with a byte(letter not present == (ZabdZdb) == (ZaYZY)
+
+- Common words in a vocabulary are represented as a single token.  (similar to Sub-words Based Tokenizer)
+
+- Rare words are broken down into two or more sub-words token.
+
+###############################################################################################################################################################
+Lecture 9: Creating Input-Target Pair using Python DataLoader (Tokenizer.ipynb notebook)
+
+* A stride = 1 moves position to next token. This could lead to overfitting. Use stride=4 moves 4 position to the target pair from the input pair
+* Batch Size - number of data to be processed by the model before updating its parameters.
+* Max-Length - number of individual tokens in a batch
+
+###############################################################################################################################################################
+Lecture 10: Token/Vector Embeddings 
+
+* vector-embedding.ipynb --> demo notebook of word2vec embedding model trained by Google on 100 billion words and 300 dimensions
+* (Tokenizer.ipynb notebook)
+
+- assigning random token IDs to words does not capture the semantic meaning of words. e.g. dogs and puppies should be semantically related
+
+
+- One hot encoding does not capture the semantic meaning of words. e.g. cat and kittens should be semantically related
+
+- Embedding Weights = total number of tokens in a vocabulary + number of dimensions/values for each token which the embedding model is trained on
+		(GP2 has 50257 tokens in its vocabulary and 768 vector dimensions for each token == 50257 * 768)
+
+- Embedding Layer is where we look up vector embeddings for a particular token ID
+
+- Embedding Layer (torch.nn.embedding) is similar to Neural network layer (torch.nn.linear), but the torch.nn.embedding is more computationally efficient than the torch.nn.linear
+
+###############################################################################################################################################################
+Lecture 11: Positional Embeddings Encoding
+
+* Positional Vectors have the same input as the vector embeddings
+
+* 2 types of positional embeddings:
+
+- Absolute  --> vector embeddings of token + position of token i.e. (Input Embeddings = Vector Embeddings + Position of Vector Embeddings)
+		fixed order of tokens. e.g. sequence generation.
+
+- Relative  --> deals with how far apart (distance) of vector embeddings, rather than the exact position. The advantage is model can generalize better to sequence of varying length, even if it has not seen such length during training.
+
+- Both Absolute and Relative Positional Encodings allow the LLM to understand the order and relationship between tokens, ensuring accurate and context-aware predictions
+
+- The choice between the 2 depends on the nature of the data being processed.
+
+- OPENAI GPTs used absolute positional encoding
+
+- During model training, the weighs are optimized for vector embeddings and positional embeddings
+
+###############################################################################################################################################################
+Lecture 12: Data Processing Pipeline of LLMs
+
+* This is a revision of lectures 1 - 11
+- Vocabulary is a dictionary where every unique token is mapped to a unique integer called token ID
+
+###############################################################################################################################################################
+Lecture 13: Introduction to the Attention Mechanisms in Large Language Model
+
+- Before the advent of transformer architecture and GPTs (which use Attention Mechanism), the Recurrent Neural Network (RNNS) were the most popular encoder-decoder architecture that was used for language translation
+
+- Output from the previous text is fed as input to the current text.
+
+* How the Recurrent Neural Network works:
+
+- RNN receives input texts
+
+- The input text is passed to an Encoder (processes input text sequentially)
+
+- Updates Hidden state at each step (Hidden state is like a memory with internal values as hidden layers). It's always updated whenever a new text is received as input
+(Hidden states are like the hidden layers of a Neural network)
+
+- Final Hidden state --> encoder captures sentence meaning from every text and also the context
+
+- Decoder takes the final hidden state to generate translated sentence one word at a time. Decoder also updates its hidden state at each time
+
+- The limitation of RNNs is: RNN cannot directly access previous hidden states (previous words) from the encoder, during the decoding phase. It relies on the current hidden state, which leads to loss of context if the sentence is too long. This limitation hindered RNN architecture is not required to build deep neural network for natural language processing, which gave rise to the transformer architecture with a self-attention mechanism, inspired by Bahdanau (German PRof)
+
+- In the self-attention, the decoder has access to all hidden states (memory of hidden layers) from the encoder, so it pays attention to the most important word for context purposes.
+
+* 4 types of attention Mechanism:
+
+1. Simplified Self Attention: 
+
+2. Self Attention
+
+3. Causal Attention
+
+4. Multi-Head Attention
+
+###############################################################################################################################################################
+Lecture 14: Simplified Self Attention Mechanism (No trainable Weights): Coded from Scratch with Python (Attention mechanism.ipynb notebook)
+
+* Goal of Attention Mechanism: 
+
+- After getting the vector embeddings for every tokens in a sentence, get the context vectors for each embedding vector, which determines how important a word is to every other word in the sentence. The context vectors will be inputs to the LLMs.
+
+- In a sentence, take the embedding vector of the most important token (aka query vector), convert the embedding vector to a context vector (which will contain information about the particular query vector and other input vectors/elements)  -----> Attention Score is the solution to this
+
+* Attention Score: 
+
+- computes the importance of a specific query (vector) in relation to other tokens (vectors). 
+
+- This is the first step to getting the context vector
+
+- Dot Product between query vector and other input vectors helps with attention score to determine how align (parallel when θ == 0) or how far (perpendicular when θ == 90) the vectors are.
+
+- Mathematically, dot-product ==> a.b = |a||b|cos θ
+
+- For Parallel/similar vectors, θ = 0 ---> a.b = |a||b|cos 0∘ ---> a.b = |a||b| * 1 == 1.
+
+- For Perpendicular vectors, θ = 90∘ ---> a.b = |a||b|cos (90∘) ---> a.b = |a||b| * 0 == 0.
+
+- In the context of self attention mechanisms, dot product determines which element of a sequence attend to one another. Higher dot product == higher attention score and similarity between   two elements(vectors)
+
+- For more info, look at the Attention mechanism.ipynb notebook
+
+* Attention Weight Calculation (Normalized Attention Score):
+
+- We use Softmax to ensure the extreme large weights are between 0s and 1s. To implement SoftMax, we take the sum of the each weight, divide the total(sum) by the exponential of each individual weight. In Pytorch, we do the same, but the difference is the highest weight is subtracted from the exponential of each weight. This process is done to avoid numerical instability when dealing with large values during training. 
+
+- Attention Weight must sum up to one.
+
+* Context Vector:
+
+- After computing the attention weights, we calculate the context vector.
+
+- Multiply individual embedding vector by individual attention weight and Sum the above resulting multiplied vectors together to get the Context vector for a particular input token (Matrix Vector Multiplication) ----> you will need do this for every input to get the context vector
+
+###############################################################################################################################################################
+Lecture 15: Self Attention Mechanism with Trainable Weights - Coded from Scratch with Python (Attention mechanism.ipynb notebook)
+
+* Key Concept: Query, Key and Value Trainable Weight Matrices
+
+* Goal:  
+
+- To pay more attention to words/vector that are contextually useful to a query vector even if they are not semantically related to the query vector.
+
+- This mode of Self Attention Mechanism is used in original transformer architecture, GPT models and most popular LLMs.
+
+- This mode of attention mechanism is also called Scaled Dot-Product Attention.
+
+- The Trainable weight matrices are updated during model training.
+
+- The Trainable weights are crucial because the trained model learns to produce the good context vectors (Enriched embedding Vector). 
+
+- We convert the input embeddings into 3-trainable weight matrices vectors --- Query Weight (Wq), Key Weight (Wk), Vector Weight (Wv)
+
+- Multiply the input embeddings by each of the trainable weight matrices (Wq, Wk, Wv) to get Query, Key and Values Matrices (Vectors). Each row of the Query, Key and Values matrices represent each input. This is known as transformation of the input embeddings into Query Key and Values Vectors.
+
+- The parameters of the 3 trainable weights (Wq, Wk, Wv) matrices are not fixed, and are optimized during model training.
+
+- Check the notebook for the codes to get the Query, Key and Value Vectors, then get the attention scores.
+
+- Attention Scores Calculation = Query vector of a particular input * Keys of all other inputs
+
+###############################################################################################################################################################
+Lecture 16: Causal Self Attention Mechanism - Coded from Scratch with Python (Attention mechanism.ipynb notebook)
+
+- Causal Attention is also known as masked attention (a special form of self attention mechanism)
+
+- It restricts the model to only consider previous and current inputs in a sequence, when processing any given token.
+
+- Causal attention contrasts Self Attention mechanism in that Slef Attention allows attention/access to the entire input sequence at once.
+
+- The attention scores in Causal attention ensures that the model only factors in the tokens that occur at or before the current token in the sequence.
+
+* Causal Attention Procedures:
+
+- Get Attention Scores (unnormalized) 
+
+- Get Attention Weights (normalized) 
+
+- Mask Attention Scores above diagonal with zero (unnormalized) 
+
+- Mask Attention Weights (normalized) 
+
+Summary: get the attention weights and zero out the diagonal  (check notebook for more explanation of codes)
+
+###############################################################################################################################################################
+Lecture 17: Multi Head Attention Part 1 - Basics and Python code (Attention mechanism.ipynb notebook)
+
+- The term multi-head refers to dividing the attention mechanism into multiple heads, with each head operating independently.
+
+- Multi-head involves stacking multiple single head attention together
+
+- Implementing multi-head attention involves creating multiple instances of the Causal Self Attention mechanism; each with its own weights and then combining their outputs.
+
+- This can be computationally intensive, but it makes LLMs powerful at complex pattern recognition tasks.
+
+- The final Context Vectors for each Causal Self Attention Mechanism are added together ----> (6 X 2 matrices) + (6 X 2 matrices) == (6 X 4 matrices)
+
+* Note if it's 5, the context vectors = (6 X 2 matrices) + (6 X 2 matrices) + (6 X 2 matrices) + (6 X 2 matrices) + (6 X 2 matrices) ----> 1 Multi-head Attention == 5 Causal Self Attention Mechanisms
+
+###############################################################################################################################################################
+Lecture 18: Multi-Head Attention (Weights Split) Part 2 - entire Mathematics Explained 
+
+* Goal:
+
+- Instead of using 2 different weights matrices for the Query matrix, Key Matrix and Vector Matrix as done in lecture 17, we use one Query Weight Matrix to multply the vector embeddings, and split the resulting Queries into different queries. This is because in GPTs, they have up to 96 attention heads and it's unreasonable to have 96 different weights matrices for query, key and values. Hence, we perform weights splits for Query matrix, Key matrix and Value Matrix in Multi-Head Attention Mechanism, to split the heads.
+
+- Mathematically: Head_dimension = d_out / n_heads  ===> d_out = columns of final context vectors, n_heads = number of Heads for (Causal Attention Mechanism)
+
+- Wq, Wk, Wv = d_in * d_out  ----> d_in (number of embedding vector in a dimensional space) == d_out (as used in training GPTs models)
+
+* Procedures for the Multi-Head Attention Class Code in Attention mechanism.ipynb notebook:
+
+1. Get the batch size, number of tokens (num_tokens) and input dimension (d_in) for each vector/input embedding. In the lecture batch_size = 1, num_tokens = 3 for 3 inputs words (The Cat Sleeps), d_in = 6 (six vector embeddings for each word in the vector space.  Mathematically, (batch_size X num_tokens X d_in = 1 X 3 X 6 matrix)
+
+2. Decide output dimesnions (d_out) and number of attention heads (num_heads). In the lecture d_out = 6 = d_in, num_heads = 2. 
+- we get the d_out from the final output (context_vector: which will be a 3 X 6 matrix) --> 3 tokens, and 6 vectors for each token
+- Get Head_dimension (head_dim) = d_out / num_heads ==> 6/2 = 3
+- GPTs use up to 96 attention heads, so num_head = 96 and input dimensions (vector embedding) will be large too for each token.
+
+3. Initialize the trainable weight matrices for Key, Query and Value ---> Wq, Wk, Wv = d_in * d_out (6 X 6 matrix tensors). d_in = d_out is needed for easy matrix multiplication of the vector embedding with each of the trainable weight matrices.
+
+4. Calculate Keys, Queries and Values (Keys = Input * Wk, Queries = Input * Wq, Values = Input * Wv). Mathematically, (1 X 3 X 6 matrix * 6 X 6 matrix tensors = 1 X 3 X 6 matrix) should be the output after multiplication. where 1=batch_size(b), 3=num_tokens, 6=d_out (output dimensions) = In matrix form, (b, num_tokens, d_out)
+
+5. Unroll last dimension of Key, Query and Values matrices to include num_heads (number of heads) and Head_dimension (head_dim). This will give 4-dimension matrix
+- head_dim = d_out / num_heads ==> 6/2 = 3
+- (b, num_tokens, d_out) = (b, num_tokens, num_heads, head_dim) ---> (1,3,6) matrix = (1,3,2,3) matrix. 
+- In elaboration, 1=batch size, 3=number of token, 2=each token with 2 heads, 3=each head with 3 head dimensions
+
+6. Group each of Key, Query and Values matrices by the num_heads instead of num_tokens using transpose.
+- (b, num_tokens, num_heads, head_dim) = (b, num_heads, num_tokens, head_dim)  ----> (1,3,2,3) matrix = (1,2,3,3) matrix.
+- The grouping of num_head (number of head) is necessary to compute attention scores for each Head group separately.
+
+7. Get the Attention Scores --> Queries * Keys.Transpose(2,3) 
+- in Matrix form: (b, num_heads, num_tokens, head_dim) * (b, num_heads, head_dim, num_tokens) = (b, num_head, num_tokens, num_tokens) which is the attention scores
+- (1,2,3,3) * (1,2,3,3) = (1,2,3,3)
+
+8. Get Attention Weights: (1,2,3,3) = (b, num_head, num_tokens, num_tokens)  same as attention scores
+- Mask Attention Scores to implement Causal Attention (mask each word after a particular token as -inf)
+- Get the softmax ---> Necessary to normalize the -inf to zero and ensure each row adds up to 1
+- We divide by the square root of head_dim == square root of (d_out / num_heads)  == square root of (6/2). This is for back propagation and stable variance
+- Also, implement drop out
+
+9. Compute Context Vector = Attention Weights * Values
+- (b, num_heads, num_tokens, num_tokens) * (b, num_heads, num_tokens, head_dim) = (b, num_heads, num_tokens, head_dim)
+- In Matrix form, (1,2,3,3) * (1,2,3,3) = (1,2,3,3)
+
+10. Reformat Context Vectors using Transpose. This is necessary to merge the number of heads and head_dimension
+- (b, num_heads, num_tokens, head_dim) ==> (b, num_tokens, num_heads, head_dim)
+- In Matrix form, (1,2,3,3) ==> (1,3,2,3)
+
+11. Merge the num_heads and head_dim in the Context Vector. This is called Flatten  
+- (b, num_tokens, num_heads, head_dim) ==> (b, num_tokens, d_out)
+- In Matrix form, (1,3,2,3) ==> (1,3,6)
+
+- Note: we use 1 batch here but more batches are used in training GPT models
+
+- Watch video again if needed for more explanation and visual representation of the Multi-Head Attention Class codes (Note: It's a bit technical with linear algebra)
+
+###############################################################################################################################################################
+Lecture 19: Birds Eye View of the LLM Architecture - GPT ARCHITECTURE PART 1 (LLM Architecture.ipynb notebook)
+
+* Goal: OpenAI GPT-2 small model will be implemented from scratch becuase its weights have been made public. GPTs-3&4 weights are not made public yet.
+
+- Output Logits: this is accomplished by every input token predicting the next token with the highest probability in the 50257 vocabulary size, to get the final output.
+
+- The Output logits will be the reverse of input embeddings (50257 vocabulary size rows and 768 dimensions columns) in that, the output tokens will now be the rows and the 50257 vocabulary size will be the columns
+
+* This lecture was just code explanation in the lecture videos.
+
+###############################################################################################################################################################
+Lecture 20: Layer Normalization in the LLM Architecture - GPT ARCHITECTURE PART 2  (LLM Architecture.ipynb notebook)
+
+* LLM Architecture
+
+			1. GPT Backbone  (from the previous Lecture 19)
+
+				|
+				|
+				|
+				V
+
+			2. Components of the Transformer Block
+
+			- Layer Normalization
+			- Masked Multi-Head Attention 
+			- Dropout
+			- Gelu Activation
+
+			- Feed Forward Network ---> (Linear Layers --> Gelu Activation --> Linear Layers
+
+			- Shortcut Connection
+
+				|
+				|
+				|
+				V
+			3. Final GPT Architecture
+
+* Layer Normalization from Transformer Block:
+
+- Training deep neural network with many layers can be challenging due to vanishing/exploding gradients and unstable training dynamics.
+
+- Layer Normalization improves stability and efficiency of neural network training
+
+- Back Propagation of layers depends on the Gradient. The gradient must not be too large or too small, hence there will be explosion and vanished gradients. Gradients are gotten by multiplication of outputs from input layers, to outputs from hidden layers during Back Propagation. Note that outputs from input layer acts as inputs to the hidden layers.
+
+* Goal: the goal is to avoid explosion of gradients if outputs from each layer is large OR vanishing of gradients if output from each layer is small.
+
+- Layer Normalization helps keep the Gradient stable.
+
+- Layer Normalization helps to keep the inputs from every layer fixed to avoid internal covariate shift (delay of convergence)
+
+- Layer Normalization adjusts the outputs of layers (every input embedding) to have mean = zero and variance = 1 to speed up un convergence.
+
+###############################################################################################################################################################
+Lecture 21: GELU Activation Function in the LLM Architecture - GPT ARCHITECTURE PART 3  (LLM Architecture.ipynb notebook)
+
+* GELU activation function lives inside the Feed Forward Layer in the Transformer Block
+
+* GELU Activation Function is used in GPTs inplace of RELU activation:
+
+- if X = +ve value (X > 0), RELU outputs the value and if X = -ve value (X < 0), RELU outputs zero. This sometimes leads to dead neurons because of the zero.
+
+- Meanwhile, GELU activation function doesn not output zero for any -ve X value (X < 0). This solves the dead neuron problem (the neuron still learns during training)
+
+- GELU is better than RELU
+
+* Default GELU Activation FUnction used in Training GPTs:
+
+- GELU(x) == 0.5 * X * (1 + tanh[sqrt(2/π) * (X + 0.044715 * X**3)]   ---> it's in the notebook as code with torch
+
+- Multiply the 768 dimension by 4 of the input in the Linear layer 1 before it goes into the GELU Activation Function layer. The output dimension from GELU are now compressed back to 768 dimensions initially from the input.
+
+###############################################################################################################################################################
+Lecture 22: ShorCut Connections in the LLM Architecture - GPT ARCHITECTURE PART 4  (LLM Architecture.ipynb notebook)
+
+- It's the + symbol on the transformer block, also known as residual connection or skip connections. They were proposed initially to solve for the problem vanishing gradients.
+
+* Note: Gradients flow from the output layer, through the hidden layers to the input layers during back propagation.
+
+- Shortcut connection create alternative flow for gradients by skipping one or more layers: this is achieved by adding the output of one layer to the output of another layer.
+
+###############################################################################################################################################################
+Lecture 23: GPT ARCHITECTURE  PART 5:  CODING  THE ENTIRE TRANSFORMER  BLOCK (LLM Architecture.ipynb notebook)
+
+* The Transformer Block preserves the dimensionality of every input and output elements as the same. In GPTs model, the dimesnionality is 768 embedding dimensions (in a vector space).
+
+- this lecture video was more about the codes.
+
+- With the Transformer BLock now implemented, we now have all the necessary building blocks for the GPT Architecture in next lecture.
+
+###############################################################################################################################################################
+Lecture 24: CODING THE 124-million PARAMETER GPT-2 MODEL (LLM Architecture.ipynb notebook)
+
+* Goal: Assemble a fully working version of the original 124-million parameters GPT-2. 
+
+* Procedural Steps:
+
+1. We'll take input texts and pass them through the entire GPT-2 Architecture.
+
+2. Convert the input texts into tokens using the BYTE PAIR Encoder (sub-word tokenizer) and get the token IDs of all the input texts from the GPT-2 vocabulary (50257)
+
+3. Convert the each token ID into token embedding vector --> GPT-2 has 768 embedding dimensions (size)
+
+4. Get the position embedding vector for each token. --> The first token will be Position 1, alongside the 768-embedding dimensions(size). The total position is also the context size (number of tokens needed to predict the next token).
+
+* Note: similar to token embeddings and positional embeddings, we do not know the embedding values for each token because they will be trianed.
+
+5. Add the token embeddings and positional embeddings for each token to get input embeddings with embedding size 768. Input Embedding = Token Embedding + Positional Embedding
+
+6. Apply Dropout by turning off some 50% of each input embeddings (elements) of size 768-dimensions to zero. --> 50% of size 768 embeddings. this prevents overfitting and improves generalization when some neurons are being lazy to optimize.
+
+7. Input embeddings with dropout enters the Transformer Block while also preserving each input 768 dimensions
+
+- Layer Normalization 1: the MEAN = 0 and VARIANCE = 1 for every input embedding with 768 dimensions
+
+- Masked Multi-Head Attention: convert the input embeddings vectors to context vectors using Query, Key and Value Matrices. Context vector captures the attention/meaning of each 'query' vector with respect to other vectors. Embedding size still 768 dimensions. This is the most import stepRefer to video for more knowledge on this. 
+
+- Dropout: turns 50% of each context vectors to zero. Same as previous dropout step.
+
+- Shortcut Connections: Add the output of dropout layer to the input layer of the previous Layer Normalization 1 to provide another means for gradient flow and solve the problem of vanishing gradient.
+
+- Layer Normalization 2: the MEAN = 0 and VARIANCE = 1 for every context embedding vector with 768 dimensions
+
+- Feed Forward Block: Input Linear Layer: expansion of each context vector by 4. 
+Summarize below:
+Multiply the 768 dimension by 4 of each input in the Linear layer 1 before it goes into the GELU Activation Function layer. The output dimension from GELU are now compressed back to 768 dimensions initially from the input.
+
+- Dropout: turns 50% of each context vectors to zero. Same as previous dropout step.
+
+- Shortcut Connections layer: Add the output of dropout layer to the input layer of the previous Layer Normalization 2 to provide another means for gradient flow and solve the problem of vanishing gradient. This is the output of the Transformer Block
+
+- Exit of the Transformer Block
+
+8. Pass the output from Transformer block into a final layer normalization block 
+
+9. Pass the output from final Layer Normalization block into an Output Neural Network Layer. Mathematically, (4 X 768 dimensions * 50257 X 768 dimensions) to get the Logits (number of tokens * 50257 vocabulary size). In this case: (4 * 502570) 
+
+- If batch side is considered, Logits = Batch size * Number of Tokens * Vocabulary Size
+
+- Logits: for every input token, we look at the 50257 vocabulary size to get the token with highest dimension/value. The highest dimension/value token will be the predicted next token. Then, we perform Autoregressive method where the output tokens serve as input to get the next predicted token.
+
+- Here the column dimensions change from 768 to 50257 columns  
+
+- In summary, GPT model outputs tensors with shape [batch-size, num_tokens, vocab_size]
+
+* Context Size: how many input words we look at before predicting the next word (just for definiton purposes)
+
+###############################################################################################################################################################
+Lecture 25: CODING THE GPT-2 MODEL TO PREDICT NEXT TOKEN (LLM Architecture.ipynb notebook)
+
+* Procedural Steps:
+
+1. Get the output tokens (logits) as rows with its coreesponding vocabulary size and the column. this process is from above lesson.
+
+2. Extract Last vector ==> In this case, the Tokens are "Every Effort moves you" where 'you' is the last vector in provided output tokens(logits).
+
+3. Convert the last logit vector into probabilities (add up to 1) by applying SOFTMAX.
+
+4. Identify the index position (Token ID) of the highest value. Decode token ID to text
+
+5. Append Token ID to the previous inputs for the next round.
+
+###############################################################################################################################################################
+Lecture 26: Measuring the LLM Loss Function  stage2_TrainingLLM\1.LLM Loss function.ipynb)
+
+* Goal: get the closeness of our predicted token IDs to the target token IDs by minimizing the loss function during training.
+
+- Loss Function tell us how good or bad the LLM performed. if the LLM performs bad, we can minimize the loss, which will aid gradient descent and back propagation.
+
+- Loss function compares the Target and Predicted Values to see how close they are. We use the input values to get the predicted values (predicted token IDs), why we know the target values (target token IDs)
+
+* Note: number of rows == number of batches
+
+* Cross Entropy Loss: measures difference between 2 probabilities distribution . It should be brought down close to zero as much as possible
+
+- Get the probabilities of predicted logits from the model with input tokens IDs. Flatten the logits so they merge together.
+
+- Merge both batches the target token into a flatten matrix, Convert the target token IDs into probabilities, take the logarithms of each target token, get the mean of the logarithm and take the negative of the mean. This is done so each probability of the merged target token and the merged logit output is close to 1.
+
+- "torch.nn.functional.cross_entropy" line of code does all the above processes for us
+
+* Perplexity: Another measure of loss like cross entropy 
+
+- This measures how well the distribution predicted by the model matches the actual distribution of words by the dataset. More interpretable way of mudel uncertainty in predicting next token.
+
+- Lower Perplexity Score = better predictions. 
+
+- Mathematically, Perplexity = torch.exp(loss) --> the gives the number of tokens to be predicted from out of the total number of vocabulary size (50257)
+
+###############################################################################################################################################################
+Lecture 27: Evaluating LLM Performance on Real Dataset (stage2_pretraining\2.LLM Training Validation Loss.ipynb notebook)
+
+check the codes for this lecture
+
+###############################################################################################################################################################
+Lecture 28: Coding the Entire LLM Pretraining Loop (stage2_TrainingLLM\3.LLM Pretraining.ipynb)
+
+* Goal: To ensure minimization of the loss function i.e close to zero  --> (probability distribution of the output sensor from model to the target sensor be close using back propagation) 
+
+Mathematically, Output == Target. 
+
+- We find the loss gradient by getting/running epoch of each batch using the back propagation (backward pass). 
+
+- Once the gradient loss (descent) is computed, we update the GPT 124million parameters (weights) --> (P1 = P0 - α.∂L/∂P0)  OR (w1 = wo - α.∂L/∂w) --> the partial derivate is optimized with ADAM in Pytorch.
+
+###############################################################################################################################################################
+Lecture 29: Temperature Scaling in Large Language Model (LLMs) (stage2_TrainingLLM\3.LLM Pretraining.ipynb)
+
+- Here, we do not pick the logit token with the highest probability. Instead, we sample next all output tokens according to probability score. --> Replace argmax with multinomial probability distribution in the code.
+
+- Temperature changes the distribution of probabilities. 
+
+1. Get the logits
+
+2. Scale logits to temperature by dividing each logits by selected temperature
+
+3. Apply Softmax on the scaled logits to get a tensor of probabilites 
+
+4. Then sample the probabilities to get multinomial distribution.
+
+- If scaled logit with higher temperature, entropy increases and every logit has the probability of being the next token. If scaled with low temp, entropy becomes low and there is always a fixed output logit (same as using argmax to get the highest probability). 
+
+- Be careful to choose a balanced temperature for controlling the entropy and randomness of the next predicted token.
+
+###############################################################################################################################################################
+Lecture 30: Top-K Sampling in Large Language Model (LLMs) (stage2_TrainingLLM\4.LLM Decoding Strategies.ipynb)
+
+* Goal: 
+
+- Top- K Sampling restricts the sampled tokens to the TOP-K most likely tokens and exclude all other tokens.
+
+1. Get the output Logits
+
+2. Perform Top-K sampling to get the highest logits tensors (here, we use k=3). Other non-selected logits will be -inf(infinity) and applying SoftMax will make them zero.
+
+3. Scale logits to temperature by dividing each Top-K logits by selected temperature.
+
+4. Apply Softmax on the scaled Top-K logits to get a tensor of probabilites. Here, the -inf tenosors will be zero.
+
+5. Then sample the probabilities to get multinomial distribution.
+
+* Note: Multimonial Distribution prevents overfitting 
+
+###############################################################################################################################################################
+Lecture 31: Saving And Loading LLM Model Weights Using PyTorch (stage2_TrainingLLM\5.Model_Weights_Loaded.ipynb)
+
+check the notebook for codes and explanation
+
+###############################################################################################################################################################
+Lecture 32: Loading Pre-Trained Weights From OpenAI GPT-2 (stage2_TrainingLLM\5.Model_Weights_Loaded.ipynb)
+
+* stage2_TrainingLLM\gpt_download3.py --> Python Script Helper Function to Load OpenAI Pre-trained wweights
+
+* Watch Lecture video again if necessary for better understanding
+
+###############################################################################################################################################################
+Lecture 33: Introduction To LLM Finetuning -- Python Coding with Hands-On Examples (stage3_Finetuning\1.Classification finetuning data loading.ipynb)
+
+* Finetuning: Adapting the pretrained model to a specific task by training the model on additional domain data. During finetuning process, the pretrained model weights and parameters change inorder to adapt to the new dataset.
+
+* 2 Types of Finetuning:
+
+- Instruction FineTuning: training an LLM on a set of tasks using specific instructions. 
+
+- Classification FineTuning: model is trained to a specific set of labels such as spam or no spam.
+
+- Parameter Efficient FineTuning (PEFT): this is a form of instruction finetuning that is more efficient than full finetuning. PEFT addresses this by updating only a subset of parameters, effectively freezing the rest. This reduces the number of trainable parameters, making memory requirements more manageable and forgetting catastrophic forgetting.
+
+- Various ways of achieving Parameter Efficient FineTuning:
+
+1. LORA (LOW RANK ADAPTERS) - instead of finetuning all the weights matrices of the pretrained LLM, two smaller matrices that approximate the larger matrix are finetuned. The smaller matrices constitute the finetuned LORA Adapters and are loaded into the pretrained model.
+
+2. QLORA (QUANTIZED LOW RANK ADAPTERS) - this is a more efficient iteration of LORA. QLORA takes a step further by quantizing the weights of Low Rank Adapters (smaller matrices) to lower precision. eg 4-bits instead of 8-bits
+
+###############################################################################################################################################################
+Lecture 34: DataLoaders in LLM Classification FineTuning (stage3_Finetuning\1.Classification finetuning data loading.ipynb)
+
+- Here, we use dataloaders divide the dataset into input target pairs.
+
+- Also, ensure (pad) the length of all input data are the same as longest input data using end of text token. This process is called tar 
+
+* PROCEDURES:
+
+1. Get Input Text,
+
+2. Convert the input texts to tokens
+
+3. Pad all the input text to have the same length as longest text using the end of token sequence token ID (50256)
+
+###############################################################################################################################################################
+Lecture 35: Coding the Model Architecture For LLM Classification Finetuning (stage3_Finetuning\2.Architecture Classification finetuning.ipynb)
+
+- Step 1: Load the Pretrained GPT-2 model
+
+- Step 2: Modify the architecture by adding the classification head.
+
+- In a pretrained model, the next token is the greatest probability token from total 50257 tokens in the output layer, while in the classification, the output is greater probability from total 2 tokens. In this case, it's either spam or no spam.
+
+- Step 3: Finetuning of a pretrained model for a specific task is usually done on the last 3 layers:
+
+1. Final Output Head
+2. Final Transformer Block
+3. Final LayerNorm Module
+
+Note: We freeze all other layers
+
+- Step 4: Extract the last token output
+
+###############################################################################################################################################################
+Lecture 36: Coding a FineTuned LLM Spam Classification Model (stage3_Finetuning\2.Architecture Classification finetuning.ipynb)
+
+* Watch Video again if necessary for better understanding
+
+###############################################################################################################################################################
+Lecture 37: Introduction to LLM Instruction Finetuning (stage3_Finetuning\3.Instruction fine-tuning dataset prep loading.ipynb)
+
+* Alpaca Prompt Style is the generally accepted format for Instruction Finetuning. The other Prompt style is Phi3 Prompt Style.
+
+- Alpaca Prompt Style involves writing a prompt that contains the instructions, inputs and outputs. Check the notebook for more codes.
+
+###############################################################################################################################################################
+Lecture 38: Data Batching in LLM Instruction Finetuning  (stage3_Finetuning\3.Instruction fine-tuning dataset prep loading.ipynb)
+
+- Convert each instruction, input, output data into the Alpaca Format using their Prompt Style
+
+- Convert the Alpaca Prompt Style Instruction, Input, Output data into tokens using tiktoken (Sub-word Tokenizer)
+
+- Ensure the length of each batch has the same number of tokens ID (in length). Where the tokens IDs are not the same length, you pad by adding the end of sequence token to make up for the highest length of tokens.
+
+- Create target token IDs for the training. Add 50256 to every target in a batch
+
+- Replace Padded Tokens with Placeholder (-100 as the placeholder). Note: we keep the first end of sequence token (50256), and replace any other 50256 afterwards with -100.
+
+###############################################################################################################################################################
+Lecture 39: Dataloaders in Instruction Finetuning (stage3_Finetuning\4.DataLoaders Instruction finetuning.ipynb)
+
+###############################################################################################################################################################
+Lecture 40: Loading Pretrained LLM Weights for Instruction Dataset Finetuning (stage3_Finetuning\4.DataLoaders Instruction finetuning.ipynb)
+
+###############################################################################################################################################################
+Lecture 41: LLM Instruction Dataset Finetuning Training Loop (stage3_Finetuning\4.DataLoaders Instruction finetuning.ipynb)
+
+- We will finetune the full pretrained LLM on instruction dataset to follow instructions.
+
+- We pretrained the LLm first before finetuning because we want the LLM to start from a knowledgeable state (ie have basic knowledge on how to generate the next token).
+
+###############################################################################################################################################################
+Lecture 42: Evaluating FineTuned LLM Using Ollama (stage3_Finetuning\5.Fine-tuned LLM Evaluation.ipynb)
+
+* STEPS:
+
+- Extracting the response from the LLM
+
+- Qualitative Evaluation
+
+- Scoring the responses 
+
+* Evaluation BenchMarks:
+
+1. MMLU - Measuring Massive MultiTask Language Understanding --> the model needs to be evaluated on 57 different tasks (questions from different fields). Check MMLU Paper for more info.
+
+2. Human Evaluation Preference on model output and groundtruth dataset output
+
+3. LLM as a Judge Evaluation --> Using a massive LLM to evaluate the performance of our built LLM
+
+Ollama LLama-3 will be used the Judge LLM for evaluation. Keep Ollama running on the terminal
+
+###############################################################################################################################################################
+
+## BUILD SMALL LANGUAGE MODEL FROM SCRATCH
+
+* Small Language Models (SLMs) are models with lesser parameters than large language models (LLMs), but still efficient as the large language model in terms of performance.
+
+* SLM trained on 15M parameters, must understand structure and nuances of a small dataset and generate stories
+
+###############################################################################################################################################################
+
+## REASONING BASED LLMs FROM SCRATCH:
+
+Lecture 1: Series Introduction
+
+* Reasoning based LLMs are LLMs that process answering questions that require complex multi-step thinking (reasoning) with intermediate steps.
+
+* Types pf Reasoning:
+
+1. System-1 Reasoning (Intuition and Instinct): constitutes 95% of our brain, unconscious and fast thinking.
+
+2. System-2 Reasoning (Rational Thinking): 5% of our brain, slow, logical and indecisive thinking.
+
+* Why DeepSeek-R1 was a special reasoning model compared to OpenAI 01:
+
+- DeepSeek-R1 was open-source, and was built on less computation resources.
+- DeepSeek-R1 achieved the same accuracy as OpenAI 01
+- DeepSeek-R1 achieved reasoning by pure Reinforcement Learning
+
+Note: In this course, we will learn to give reasoning powers to LLMs
+
+* Test-time compute is the number of computing resources used by the model during inference (to start generating answers). The first method to induce reasoning into an LLM is to spend more time computing resources during inference.
+
+* Distillation: you take a Large Reasoning model, generate input and out pairs from the Large reasoning model. Finetune a Small Language Model on the generated input/output pairs to start reasoning like the Large reasoning Model
+
+* 4 Methods that Impact Reasoning Capabilities into a Large Language Model
+
+1. Inference-Time Compute Scaling  (Chain of Thoughts, Verifier, Beam Search)
+2. Pure Reinforcement Learning
+3. Supervise FineTuning and Reinforcement Learning
+4. Pure Supervise Finetuning and Distillation
+
+###############################################################################################################################################################
+Lecture 2: Chain of Thought Reasoning (Few-Shot CoT & Zero-Shot CoT)
+
+* Method 1- Inference Time-Compute Scaling: 
+Allocating more test-time compute resources to an LLM to impact its reasoning and generate better answers. This is the same as humans thinking more on a problem using our mental energy to achieve better outcomes.
+
+* Note: the more alloted thinking/reasoning time to an LLM for a problem, the more tokens needed for the LLm to generate better answers. Hence, it leads to better accurcacy of the LLM.
+
+- Chain of Thought Prompt: series of intermediate steps that enables the LLM to perform complex reasoning tasks from an input and output pair. You only prompt the LLM once from an input/output pair (examples), and the LLM generates outputs (answers) in a similar way for any other input examples it sees. The input/output example provided in the prompt is Few-Shot Prompting, while the Reasoning Steps are Few- Shot Chain of Thought Prompting
+
+- If no input/output pairs are provided, the prompting is Zero-Shot Prompting. And if a reasoning step is included in the prompt, it's called Zero-Shot Chain of Thoughts prompting
+
+Notebooks for this lecture:
+- Reasoning_LLMs\1.Module_1_Inference_Time_Compute_Scaling_Effect_of_Model_Size_on_Accuracy_with_Chain_of_Thought_Reasoning.ipynb
+- Reasoning_LLMs\2.Module_1_Inference_Time_Compute_Scaling_Comparing_Different_Methods_with_Baseline.ipynb
+- Reasoning_LLMs\3.Applying_Zero_Shot_Prompting_to_Llama_3_2_Built_From_Scratch.ipynb
+
+###############################################################################################################################################################
+Lecture 3: Verifiers (Beam Search)
+
+- You ask the LLM a question, the LLM generates different answers. The LLM reasoning layers reasons through the generated answers, and the the verification layer verifies all the generated answers before producing the best answer.
+
+- Verification increase the inference test time compute of the LLM
+
+- Verification can be done by either human or models. If Verification is done by model, the model is called Reward Model.
+
+* 2 types of Reward MOdels:
+- Outcome Reward Model (ORM) --> gives a reward by scoring only the final outcome of the reasoning model.
+- Process Reward Model (PRM) --> indivdual reasoning/thinking step of the Reasoning Model is scored.
+
+* Types of Verifiers:
+
+1. Majority Voting  --> the verifier assesses the majority of answers produced by the reasoning model. There is no verification layer here and the majority answer could be wrong.
+
+2. Best of N --> N samples are produced by the LLM, and the verifier (ORM) chooses the best sample of all produced samples. Also, if verifier is PRM, it scores each thinking step produced by the reasoning model.
+
+3. Beam Search --> this verifier (PRM) combines with reasoning model to explore multiple reasoning paths before arriving at the final answer. 
+Two parameters here: 
+- number of beams parameter (different thoughts generated by the model)
+- beam width parameter (selected thoughts from generated thoughts) and 
+
+Notebook for this lecture:
+- Reasoning_LLMs\4.Beam_Search_Demonstration.ipynb
+
+###############################################################################################################################################################
+Lecture 4a: Reinforcement Learning - Basics
+
+- Type of Machine Learning where the agent simply learns by interacting with its environment and taking actions to achieve a reward (Goal). It maximizes a reward signal. eg a chess player, a robot making decision
+
+- The agent uses its experience to improve its performance by interacting with the environment when it learns(moves) from State to State. Of all forms of Machine Learning, Reinforcement Learning is peculiar to humans and animals.
+
+* 4 main Elements of Reinforecemnt Learning
+1. Policy --> defines agent's way of taking action (behaving) at each step
+2. Reward Signal --> Short term desireliability goal of the agent
+3. Value Function --> same as reward signal but on a long-term desireliability
+4. Model of the environment
+
+* Note: this is a theoretical explanation of RL (watch video again for more information).
+
+###############################################################################################################################################################
+Lecture 4b: Multi-Arm Bandits  ( watch video again for better understanding if necessary)
+
+* Bandits problems are the gateway to full reinforcement learning problems. 
+
+* Bandit problems is to on state while reinforcement learning is to many states.
+
+* Bandits deal with reward maximization in one state.
+
+* Bandit requires no planning, reinforcement requires multiple planning.
+
+* Bandit actions are independent of each other while reinforcement actions are dependent on eachother.
+
+Notebook for lecture:
+- Reasoning_LLMs\5.Multi_arm_Bandit_Problem_(Exploration_vs_Exploitation).ipynb
+
+###############################################################################################################################################################
+Lecture 5: MarKov Decision Processes
+
+* Returns(G) = sum of all rewards collected by the agent for every time step
+
+* Episodic task = exponential(Gamma*Rewards)
+
+* A State Signal that suceeds in maintaining past relevant information is calle MARKOV PROPERTY OR SIMPLY MARKOV
+
+* If a State Signal has a Markov Property, it helps us to predict the next State and expected Reward given the current State and Action.
+
+* A Reinforcement Learning Task which satisfies the Markov Property is known as Markov Decision Process (MDP)
+
+###############################################################################################################################################################
+Lecture 6: Value Functions
+
+* Value Function is the cumulative reward the agent receives in the long run.
+
+* State Value Function is the total expected reward an agent receives from that State
+
+* Action Value Function is the total expected reward an agent receives from that State after taking an action.
+
+Notebook for lecture:
+Reasoning_LLMs\6.Bellman_Optimality_Equations_Recycling_Robot.ipynb
+
+###############################################################################################################################################################
+Lecture 7: Dynamic Programming
+
+* Dynamic Programming is a collection of algorithms which helps to calculate optimal policies. Dynamic Programming calculates optimal policies follwoing 2 steps:
+1. Policy Evaluation
+2. Policy Improvement
+
+* Policy Iteration = Policy Evaluation + Policy Improvement
+
+Code Notebook in Lecture Video
+
+###############################################################################################################################################################
+Lecture 8: Monte Carlo Methods
+
+* Monte Carlo methods enable an agent to learn through experience. The methods do not require an agent to have prior knowledge about the dynamics of the environment.
+
+* Policy Update from Claude:
+- https://claude.ai/public/artifacts/1e531122-1b45-4337-86a2-df8bc2ac531b 
+- https://claude.ai/public/artifacts/8a773548-d360-418b-a20b-d427dc7a1952
+
+* Limitation of Monte Carlo method is the Episode completion before any update is made to the State
+
+###############################################################################################################################################################
+Lecture 9: Temporal Difference Prediction Methods
+
+* This method encompasses both Dynamic Programming and Monte Carlo methods
+
+* Calculate all Returns from every episode and take the average of the Returns.
+
+* It does not require model and it learns from experience (Monte Carlo)
+
+* It requires features from the previous States to update the next State (Dynamic Programming)
+
+* This method does not wait for the completion of any Episode before updating its next State. (Differs from Monte Carlo)
+
+Code Notebook:
+Reasoning_LLMs\7.Comparing_TD(0)_and_Monte_Carlo_methods_for_Random_Walk_Problem.ipynb
+
+###############################################################################################################################################################
+Lecture 10: Temporal Difference Control
+
+* We find out which Policy is the optimal Policy
+
+###############################################################################################################################################################
+Lecture 11: Function Approximation Method
+
+* Here, weights adjustment are done to calculate the Predicted Value Functions, Mean Square Error is use to find the difference between the predicted Value Functions and True Value Functions. 
+
+* Note: mean squared error should be minimize using the Stochastic gradient descent
+
+###############################################################################################################################################################
+Lecture 12: Policy Control Using Value Function Approximation
+
+###############################################################################################################################################################
+Lecture 13: Policy Gradient Methods
+
+* This method is the heart of the algorithm used for reasoning LLMs (OpenAI-01, DeepSeek)
+
+* We look at methods which can learn an optimal policy without considering the value function.
+
+* Policy Parametization is the first choice when looking at policy gradients.
+
+* Performance measure J(θ) capures the Policy performance
+
+###############################################################################################################################################################
+Lecture 14: REINFORCE
+
+###############################################################################################################################################################
+Lecture 15: Generalized Advantage
+###############################################################################################################################################################
+Lecture 16: Trust Region Policy Optimization (TRPO)
+
+* There is a Trust region for which you do not want the Policy to move beyond i.e the new Policy should be close to the old policy on the agent (model) during interaction with the environment.
+
+* Trust Region restricts the Policy from moving by a large amount. The Policy must be centered around the Trust Region
+
+###############################################################################################################################################################
+Lecture 17: Trust Region Policy Optimization (TRPO) Solution Methodology
+
+###############################################################################################################################################################
+Lecture 18: GRPO (Group Relative Policy Optimization)
+
+* Agent/Model RL Algorithm used in DeepSeek LLM
+
+* Examples: chess game, cleaning Robot --> they have States, Actions, Rewards
+
+* Policy Gradient Method is used for improving Policy (Policy Optimization) if the Reward is postitive. This reward is received at the end of every episode but after every single action is taken.
+
+* GRPO methods involves getting Rewards for every generated output by the LLM, subtract the Mean from each Reward and divide each Reward by the Variance. This process is called Reward Normalization for Policy Optimization
+
+* Mathematically: A = (R - Mean(R) / STD(R))   ---> STD is Standard deviation (Inverse of Variance), A = Advantage Function
+
+###############################################################################################################################################################
+Lecture 19: Proximal Poliy Optimization (PPO)
+
+* This algorithm is the heart of using RLHF (Reinforcement Learning with Human Feedback)
+
+* PPO gave rise to Clipped Surrogate Objective --> this tells the deviation of the New Policy from the Old Policy. TRPO maximizes this Objective Surrogate
+
+* If the Advantage function of New policy to Old policy  is > 1, it's Clipped. If Advantage Function < 1, it's not Clipped.
+
+###############################################################################################################################################################
+Lecture 20: Applying Reinforcement Learning in LLMs
+
+* For LLM, Policy is the probability of predicting the next token given the current sequence of tokens to generate a Reward
+
+1. Agent = LLM itself
+
+2. Action = Every Individual Token received by the LLM
+
+3. State = Prompt + Every Predicted Token by the LLM (Autoregressive Ideology)
+
+4. Target Environment = Data or Python Interpreter (What the Agent learns from)
+
+5. Policy = probabibility of predicting next token by the LLM.
+
+6. Reward = done by a trained Reward Model from human preferences data (supervised learning). There is Output Reward Model (ORM), which gives a higher score for output preferred by humans.
+
+###############################################################################################################################################################
+Lecture 21: GRPO PART-2  (same explanation as PART 1 above)
+
+###############################################################################################################################################################
+Lecture 22: Build Reasoning Model with GRPO --> Using DeepSeek-R1 as LLM
+
+* Both the Reward model and Value Function model were removed when the LLM generated different outputs.
+
+* <think> and </think> tags were added as Accuracy and Format Rewards for thinking process.
+
+* A training template was added to the LLM and no input/output pair of data required.
+
+* Model develops the ability to use more computational resources while answering as the training time increases.
+
+* Model naturally learns to solve complex reasoning tasks by allocation of more thinking time (inference time compute)
+
+Code Notebook:
+Reasoning_LLMs\8.Copy_of_Qwen2_5_(3B)_GRPO.ipynb  ---> running this notebook takes hours (just to note)
+
+###############################################################################################################################################################
+
+## HANDS-ON LLM Lectures:
+
+Lecture 1: Hands-on LLM Series Introduction
+
+* Reference Book --> https://www.amazon.com/Hands-Large-Language-Models-Understanding/dp/1098150961
+* Github Link --> https://github.com/HandsOnLLM/Hands-On-Large-Language-Models/tree/main
+
+* Language AI: subfield of AI that focuses on developing technologies capable of understanding, processing and generating human languages. Language AI is aka NLP (Natural Language Processing.
+
+Natural Language Processing Evolution: 
+1. Bag of Words (BOW) --> 2000, shows how many tokens(words) are present in a sentence. IT does not capture semantic meaning of words.
+2. Word2Vec --> 2013, captures semantic similarity of words (tokens) in higher dimensonal space (cosine similarity)
+3. Attention Mechanism (Transformer Architecture) --> 2017, it captures the relevance of each vector wrt to other vectors to predict the next best token i.e context vectors mechanism.
+4. BERT, DistilBERT, RoBERTa
+5. GPT, GPT-2, GPT-3.5 (ChatGPT)
+6. T5 (text-to-text Transformer), FlanT5
+
+###############################################################################################################################################################
+Lecture 2: The LLM Evolutionary Tree
+
+* NLP Model Variants:
+1. BERT Model --> Encoder only models
+2. GPT Models --> Decoder only models
+
+* Encoder Only Models (Representative Models) are widely used for various tasks like classification, clustering and semantic search. They do not generate new texts or images, just word(token) embeddings.
+
+* Decoder only Models (Generative Models) are used to generate new texts,  new images. They do not generate embeddings.
+
+* LLMs are either encoder only models or decoder only models.
+
+* Open source and Close source models --> weights of open source are available, while weights of closed source are not available.
+
+###############################################################################################################################################################
+Lecture 3: Microsoft PHI-3 Mini LLM Using HuggingFace
+
+Code Notebook: Hands_on_LLMs\1 - Introduction to Language Models.ipynb
+
+###############################################################################################################################################################
+Lecture 4: BERT + Finetuning model for Movie Review Sentiment Analysis (Representative Model for Movie Review Classification)
+
+Code Notebook: Hands_on_LLMs\2-Text_Classification.ipynb
+
+###############################################################################################################################################################
+Lecture 5: Implementing FLAN-T5 (Text-to-Text Transfer Transformer) Generative Model for Movie Review Classification
+
+Code Notebook: Hands_on_LLMs\2-Text_Classification.ipynb
+
+###############################################################################################################################################################
+Lecture 6: Using ChatGPT API for Movie Review Classification
+
+Code Notebook: Hands_on_LLMs\2-Text_Classification.ipynb
+
+###############################################################################################################################################################
+Lecture 7: Text Clustering Using Sentence Transformers (ArXiv Research Paper Abstract)
+
+* Stages:
+1. Get the dataset(arXiV.com)
+2. Convert each input document to embeddings using an embedding model
+3. Reduce dimensionality of embeddings using the embedding reduction model. Principal Component Analysis(PCA) or Uniform Manifold Approximation and Projection(UMAP) can be use to reduce dimensions.
+4. Find groups of semantically similar documents using a clustering model -- KMeans or Density-Based to cluster them together. We'll used DBSCAN here
+5. Inspect Clustering.
+
+- For KMeans, you need to know the number of clusters beforehand and it does not account for outliers. KMeans is aka Centroid-based.
+
+- Density Based does not involve knowledge of number of clusters beforehand and not forcing datapoints to be parts of clusters. Two types of Density-Based Method:
+ 
+1. DBSCAN  - Density Based Spatial Clustering Applications with Noise. It struggles with densities
+2. HDBSCAN - Hierachichal Density Based Spatial Clustering Applications with Noise. It can detect outliers data, does not struggle with densities.
+
+Code Notebook: Hands_on_LLMs\3-Text_Clustering_and_Topic_Modeling.ipynb
+
+###############################################################################################################################################################
+Lecture 8: Topic Modelling Using BERTopic
+
+* Here, we assign labels (keywords) to each cluster gotten from the previous lecture using the same code.
+
+* Latent Dirichet Allocation: a traditional approach that uses bag of words to extract keywords and do not take into account context or meaning.
+
+* BERTopic: modular topic modelling framework that leverage clusters of semantic similar text to extract various types of topic representations.
+
+- BERTopic Modularity ---> embedding model (SBERT) > dimensionality reduction (UMAP) > Clustering (HDBSCAN) > CountVectorizer (get term frequency) > TF-IDF
+
+- BERTopic approach is called the Bag-of-Words approach.
+
+* Term Frequency * Inverse Document Frequency (TF-IDF) will be used to put more weights on words that are meaningful to the cluster, and put less weights on words used all across the clusters
+
+- Term Frequency (Count Vectorizer) is the number of times a word appears in a cluster.
+
+- Inverse Document Frequency is frequency of all documents across all clusters
+
+Mathematically, TF-IDF_word_score = log[(Average Frequency of all words across all clusters / Total Frequency of each word in a cluster ) + 1]  OR
+
+Alternatively, IDF = log(n/df) where n will represent the total number of clusters/documents and df will represent the number of clusters/documents in which the word has appeared in.
+
+- The TF-IDF score gives which words should be used as keywords to describe each cluster.
+
+Code Notebook: Hands_on_LLMs\3-Text_Clustering_and_Topic_Modeling.ipynb
+
+###############################################################################################################################################################
+Lecture 9: LLM (Representative and Generative Models) for Text Clustering and Topic Modelling (BERTopic)
+
+* BERTopic (Bag of Words) approach limitation: it does not take semantic structures into account when representing a topic.
+
+* Bag of Words approach is used to get the keywords for each cluster, but combined with embedding (representation) models to rerank the keywords for semantic meaning of the keywords to each cluster documents. This procedure is called FineTune Representation or Rerank Representation
+
+* Different Finetune Representative Blocks
+1. KeyBERT
+2. MMR (Maximum Marginal Relevance)
+3. Spacy
+
+* How the KeyBERT Representative Model Works: 
+- the representative model embeds documents in a clusters
+- the keywords got from TF-IDF are also embedded using an pretrained embedding model
+- get the Cosine Similarity Score between the embedded keywords and the embedded documents in the cluster(s). Reranking gives from Highest Similarity Score to Lowest similarity score
+- KeyBERT doesn't account for abbreviations in a cluster of documents, even if the abbreviations are relevant.
+
+* How the MMR Representative Model Works:
+- filter redundant keywords (words that appear often) and keep those that contribute something new to topic representation.
+- diversification of topic representation --> finds Keywords that are diverse but still related to compared documents in the cluster.
+- specify a diversity parameter.
+
+* Note: KeyBERT and MMR can be used/stacked together or independently
+
+* Generative models look at 3 documents in a cluster and its corresponding Keywords to generate a label.
+
+Code Notebook: Hands_on_LLMs\3-Text_Clustering_and_Topic_Modeling.ipynb
+
+###############################################################################################################################################################
+Lecture 10: Introduction to Prompt Engineering
+
+1. Design Effective Prompts
+2. Evaluate the Model
+3. Design Safeguards and Safety Mitigation Methods
+
+* Instruction-Based Prompting: 
+- This type of prompting is often used to answer a specific question or resolve a certain task. Examples: supervised classification, search, summarization, code generation, named entity recognition. 
+- 3 Techniques using Instruction-Based prompting:
+1. Specifity - be specific in the prompt about what's necessary
+2. Hallucination - prompt the LLm to include 'I don't Know' if it dies not know the answer so it does not hallucinate.
+3. Order - consider Primacy Effect (instruction at the beginning) or Recency Effect (instructions at the ending) when prompting because LLMs focus more on information at the beginning and ending of prompts.
+
+* Note: Always use the 7 Prompt components when compiling a prompts (Hands_on_LLMs\4-Prompt components.jpeg)
+
+Code Notebook: Hands_on_LLMs\4-LLM_Prod_Prompt_Engineering.ipynb
+
+###############################################################################################################################################################
+Lecture 11: Advanced Prompt Engineering Techniques (In-Context Learning, Chain of Thoughts, Tree of Thoughts)
+
+* In-Context Learning: Instead of describing the task, why not show the task to the LLm by providing examples of what to achieve
+
+* 3 Types of In-Context Learning: (Hands_on_LLMs\5-prompt types.jpeg)
+- Zero-Shot Prompting: prompting without giving examples
+- One-Shot Prompting: prompting with a given single example
+- Few-Shot Prompting: prompting with more than one example.
+
+* Chain Prompting: Breaking up the Problem: breaking up problems (prompts) into smaller pieces. We take the outputs from one prompts and use it as second prompt to the LLM.
+
+* Prompts for Reasoning: Reasoning is a core component of human intelligence, which can be applied to LLM, inorder to improve the outputs of the LLM. Today's LLMs have a Reasoning Capability/processes. 
+- Chain of Thoughts (CoT) prompting: add 'think step by step' to the LLM to reason before producing an output.
+- Tree of Thought Prompting: exploring multiple intermediate path/steps before reaching the final answer. In Reinforcement Learning, it's called Beam Search. add think like a group of experts to the LLM before arriving at an answer
+
+Code Notebook: Hands_on_LLMs\4-LLM_Prod_Prompt_Engineering.ipynb
+
+###############################################################################################################################################################
+Lecture 12: LLM Guardrails -- How To control LLM Output
+
+* Guardrails are essential for LLMs to generate the output we want. They flag profane words, hallucination etc
+
+Code Notebook: Hands_on_LLMs\4-LLM_Prod_Prompt_Engineering.ipynb  (Output Verification Part)
+
+* Github Links for LLM Guardrails
+1. https://github.com/guidance-ai/guidance  ---> Guidance
+2. https://github.com/guardrails-ai/guardrails ---> Guardrails
+3. https://www.guardrailsai.com/hub  ---> Guardrails hub for more Validators
+
+###############################################################################################################################################################
+Lecture 13: LangChain And Agents Introduction
+
+* Advanced Text Generation Tools and Techniques without Finetuning
+
+1. Model Inputs/Outputs: loading and working with the LLM
+2. Memory: helping LLMs to remember. Less memory/weights/size of LLM == less cost of the LLM
+3. Agents: combining complex behaviour with external tools
+4. Chains: connecting methods and modules
+
+* Langchain leverages the use of the above 4 components.
+
+###############################################################################################################################################################
+Lecture 14: LLM Quantization
+
+* Quantization is the compression of original LLM into a smaller version of the model (GGUF format). It reduces the number of bits (memory) needed to represent LLM parameters (weights) while attempting to retain most of the information.
+
+- VRAM (Video Random Access Memory): to run large memory LLMs, and can take small memory of quantized LLMs
+
+- Float 16-bit (FP16) has 3 parts:
+1. Sign (1-bit)
+2. Exponent (5-bits)
+3. Significand/Mantissa (10-bits)
+ 
+- Float 32-bits (FP32) representation has higher precision than Float 16-bits (FP16). Also has sign, exponents and Significand(Mantissa) as FP16. Most LLMs weights are represented in 32-bits (full precision)
+
+- More bits = More Precision = More memory consumption.
+
+- Mathematically: LLM Memory = [number of bits / 8] * number of parameters. 
+
+- For 64-bits model weights representation and 70-billion parameters, llm-memory = 64/8 * 70 ==> 560GB memory size
+
+- For 32-bits model weights representation and 70-billion parameters, llm-memory = 32/8 * 70 ==> 280GB memory size
+
+- For 16-bits model weights representation and 70-billion parameters, llm-memory = 16/8 * 70 ==> 140GB memory size
+
+- Tradeoff: low memory is directly proportional to low precision.
+
+- Quantization and Dequantization involves loss of information
+
+- GGUF is file format for using quantized model on a CPU with low VRAM. Commnly used with `llamacpp`
+
+Code Notebook: Hands_on_LLMs\6-Chapter_7_Advanced_Text_Generation_Techniques_and_Tools.ipynb  --> Loading an LLM Part of the Notebook
+
+###############################################################################################################################################################
+Lecture 15: Coding chains with Langchain | Hands-on demonstration
+
+- Chains allow for extending capability of LLMs
+- Multiple Chains can be connected together
+
+Code Notebook: Hands_on_LLMs\6-Chapter_7_Advanced_Text_Generation_Techniques_and_Tools.ipynb --> Chains and Multiple Chains Part of Notebook
+
+###############################################################################################################################################################
+Lecture 16: How to give memory to Large Language Models
+
+Code Notebook: Hands_on_LLMs\6-Chapter_7_Advanced_Text_Generation_Techniques_and_Tools.ipynb --> Memory parts of the Notebook
+
+###############################################################################################################################################################
+Lecture 17: LLM Agent Using Langchain
+
+Code Notebook: Hands_on_LLMs\6-Chapter_7_Advanced_Text_Generation_Techniques_and_Tools.ipynb ---> Agent Part of Notebook
+
+###############################################################################################################################################################
+Lecture 18: Semantic Search and RAG
+
+* Semantic Search searches by meaning and context of words better than Keyword Search
+
+* 3 Broad Categories of using Language Models for Search:
+- Dense Retrieval --> relies on the concept of vector embeddings to find similarity (nearest neighbour) between query embedding and retrieved documents embeddings
+- Reranking --> ranks the retrieved documents by assigning a score relevance in improved manner. This comes after a retrieval from 1 above.
+- RAG --> pass both query embedding and reranked documents to the LLM to get an output and avoid hallucination.
+
+###############################################################################################################################################################
+Lecture 19: Coding a Dense LLM Retrieval System
+
+* Use FAISS Library for dense retrieval, clustering of vector and finding  Euclidean distance between query and retrieved documents
+
+* Demerits of Dense Retrievals:
+- it generates outputs even if the texts/documents do not contain the answers for the query.
+- does not account for Keywords if needed. Use Hybrid Search here
+- difficult to work with different domains. only works with domains data trained on
+
+* Hyrid Search -- Semantic search + Keyword Search
+
+Code Notebook: Hands_on_LLMs\7-Chapter 8 - Semantic Search.ipynb
+
+###############################################################################################################################################################
+Lecture 20: Chunking Strategies for Large Language Models (LLMs)
+
+* Chunks are the smallest unit of documents
+
+* Chunking Strategies:
+1. One Vector per documnent (Document/Sentence Vector)  --> not good bcos you can lose necessary information
+
+2. Chunking document into multiple chunks:
+- Paragraph Chunks, 
+- Character Split, 
+- Token-Level Split, 
+- Token-Level Split with Overlap
+
+* Types of Chunking:
+1. Fixed-Size Chunking  --> encompasses paragraph chunking, sentence/document chunking, character chunking with overlap, token chunking with overlap etc.
+
+2. Semantic Chunking --> Every sentence in a chunk have similar meaning. This depends on cosine similarity between chunks.
+
+3. Recursive Chunking --> continuous split of splitted chunks into smaller chunks, based on the sizes of larger chunks.
+
+4. Document-Structure based Chunking --> chunk topics, pages, sentences
+
+5. LLM-Based Chunking --> this chunking done by a LLM.
+
+* Chunking leads to more expressive search index than expressing the entire document as a vector
+
+###############################################################################################################################################################
+Lecture 21: Reranking for Semantic Search
+
+* Reranking is assigning a relevance score to retrieved documents in order of relevance.
+
+* Reranking vastly improves search/retrieved results
+
+- Reranking is cross encoder (encodes retrieved docs + query to assign a score).
+- Dense retrieval is Bi-encoder
+
+* BM25 algorithm is used for Keyword/Lexical Search
+
+Code Notebook: Hands_on_LLMs\7-Chapter 8 - Semantic Search.ipynb ---> Reranking Example Part
+
+###############################################################################################################################################################
+Lecture 22: Evaluating Retrieval Systems | Mean Average Precision (MAP)  (watch this lecture again)
+
+* Here, you mark the retrieved documents as relevant, not relevant pertaining to each query
+
+* Assigning retrieved documents as relevant or not relevant to each query can be done by humans or LLMs. Consider using Evidenlty AI here for more education
+
+* Precision is ratio of relevant docs until that point divided by total number of documents in that point.
+- Divide each Precision for retrieved relevant docs by the total of retreived docs.
+- Take the average of all divided Precision. This is Mean Average Precision
+- Mathematically, [Mean Average Precision = precision_of_relevant_docs / total number of precision]  
+
+###############################################################################################################################################################
+Lecture 23: Retrieval Augmented Generartion -- Introduction and Coding.
+
+Code Notebook: Hands_on_LLMs\7-Chapter 8 - Semantic Search.ipynb   ---> RAG Part
+
+* Major difference between RAG and Finetuning: 
+- In Finetuning, we train the LLM again by adjusting/updating the weights of LLM. 
+- In RAG, we do not train the LLM, but rather use a pretrained and finetuned LLM without changing the LLM weights. RAG is more effective and less costly than finetuning.
+
+###############################################################################################################################################################
+Lecture 24: Advanced RAG Techniques
+
+1. Query Rewriting: writing a query into a more contextual and specific meaning for the LLm to understand.
+2. Multi-Query RAG: making 2 or more search queries to get retrieved documents for each query.
+3. Multi-HOP RAG: More advance question require series of sequential queries.
+4. Query Routing: when LLM searches specific data sources related to the query
+5. Agentic RAG: when the RAG system is equipped with tools to take actions
+
+###############################################################################################################################################################
+Lecture 25: Evaluating RAG Systems
+
+* Human Annotators
+* Ragas Software Library - Faithfulness, Answer Relevance  ----> https://docs.ragas.io/en/latest/concepts/ (reference link for codes using Ragas)
+* https://github.com/evidentlyai/evidently/blob/main/examples/llm_eval_grafana_dashboard/evidently_metrics_calculation.py ---> Evidently LLM Evals with Grafana
+* https://docs.langchain.com/langsmith/observability  ---> LangSmith Evaluation and Monitoring.
+
+###############################################################################################################################################################
+Lecture 26: Vision Transformers - How and Why they Work
+
+* Models which can handle both texts and images are called Multimodal. Also videos, audio models are termed Multimodal models.
+
+# Critical Steps of Processing an Image through a Vision Transformer (similar to text data for GPT-2 Architecture)
+1. Convert image into tokens
+2. Convert tokens into token embedding vectors
+3. Add positional embedding vectors to token embedding vectors to get input embeddings.
+
+* Converting images to tokens involves dividing the image into 16-patches (tokens) of images (sub images) (pixels-16X16). Each patch is flattened out to get both token and positional embedding vectors and sum them together to get input embeddings (embedded patches). The embedded patches, similar to text is then fed into the transformer block. This is the priciple behind Vision Transformer.
+
+* Principle of Vision Transformer: An Image is worth 16 X 16 words
+
+* Linear Projection of Flattened Patches is used to convert the flattened patches into vectors. Each patch can be termed as a token.
+
+* Traditional way of working with image classification is CNN (Convolution Neural Network), which involves extracting feature maps, and stacking of layers (filtering layer, max pooling layer
+
+* Vision Transformer does not rely on translational equivariance and localiation, which CNN relies on.
+
+* CNN outperforms ViT on small dataset, while Vision transformers outperm CNN on large datasets
+
+Vision Transformer depiction ---> Hands_on_LLMs\8-image_conversion_to_patches -ViT.jpeg, Hands_on_LLMs\9-images patchs for ViT.jpeg
+
+###############################################################################################################################################################
+Lecture 27: Introduction to CLIP (Multimodal Embedding Models)
+
+* Multimodal Embedding Models have embeddings of both image and text in the same vector space
+* Multimodal embeddings models create embeddings for multiple modalities in the same vector space.
+
+- CLIP (Contrastive Language Image Pre-training): a multimodal embedding model that computes embeddings of both images and text. Resulting embeddings of both texts and images lie in the same vector space, which means image embeddings can be compared to text embeddings.
+
+- The embeddings of images and texts are computed using the Vision Transformer for Images and Text transformer for texts, before projecting both embeddings in a bigger vector space.
+
+* Contrastive Learning: when you feed the multimodal model with new batches of images and texts to update its weight for training. These new batches are fed into the model after the cosine similarity between an image and text is found.
+
+* Clip does not generate new texts or images, just embeds images with its corresponding texts and capture semantic meaning between them.
+
+Code Notebook: Hands_on_LLMs\9-Chapter 9 - Multimodal Large Language Models.ipynb  --> CLIP Section
+
+###############################################################################################################################################################
+Lecture 28: Introduction to BLIP (Making Text Generation Multimodal)
+
+* BLIP - Bootstrapping Language Image Pretraining
+* BLIP-2 is a multimodal large language model, that take images + texts as inputs, and generates texts as output.
+* BLIP leverages Pretrained Vision Transformer, add a trainable Query-Former Transformer (Vision Transformer + Text Transformer) with 188M paramteters into its LLM to generate texts. --> Hands_on_LLMs\9-BLIP-pics.jpeg
+* Query Former Pics --> Hands_on_LLMs\9-Query Transformer pics.jpeg
+
+- The Q-Former Vision transformer aligns the visual embeddings from the Pretrained Vision Transformer with the Texts embeddings from the Q-Former Text Transformer so both visual embeddings and text embeddings match before transfering to a Pretrained LLM --> Hands_on_LLMs\9-Query Transformer pics.jpeg
+
+Code Notebook: Hands_on_LLMs\9-Chapter 9 - Multimodal Large Language Models.ipynb
+
+###############################################################################################################################################################
+Lecture 29: Summary of Vision Transformers, CLIP and BLIP
+
+###############################################################################################################################################################
+Lecture 30: Contrastive Learning: A methodology for Creating Embedding Models
+
+* In Contrastive Learning, you ask a contrastive question inorder to get more information (answer)
+
+* Minimize the loss between similar outputs (texts or images) and maximize the loss between dissimilar output (texts or images)
+
+https://github.com/VizuaraAILabs/Slack-ClawdBot  --- Vizuara Clawbot Github Link
+
+###############################################################################################################################################################
+
+AI AGENTS AUTOMATION -- N8N 
+
+* node automation, nodemation were previous names of n8n.
+
+* Nodes Types:
+
+1. Trigger Node: node that starts a flow. eg form submission, webhook, cron job. Types - Manual Triggers, Automatic Triggers, Time-Based/Schedule-Based Triggers
+
+2. Action Node: node that performs tasks. eg send an email, call an API.
+
+Each node passes data to the next one like a pipeline.
+
+- Webhook is a way for one app to send data to another app automatically when something happens.
+- A cron-job is a time-based trigger that runs a workflow on a schedule.
+
+* N8N can be hosted on n8n cloud (paid version), locally with docker desktop (which I'll use).
+
+- On Docker Desktop, go to images, search n8n, select n8nio/n8n, click pull. Docker version of n8n did not work, so I'll use the cloud version.
+Class Ends: 6:11
+
+* https://wisprflow.ai/ --> voice to text AI tool. download if necessary
+
+###############################################################################################################################################################
+
+COMPUTER VISION FROM SCRATCH (https://github.com/GoogleCloudPlatform/practical-ml-vision-book/tree/master) - Tutorial Codes
+
+Lecture 1: Course Launch --> Evolution of Computer Vision from Rule Based Algorithm to ML Algorithm
+
+* (https://github.com/GoogleCloudPlatform/practical-ml-vision-book/tree/master) - Tutorial Codes
+
+###############################################################################################################################################################
+Lecture 2: Introduction to CV from Scratch Series
+
+* Kernel: to detect edges in a picture image after a filter is applied to the image
+
+* Before the advent of ML-CV, Rule-Based Systems were previously used to classifiy images. You set different rules for images to meet some specifications. Rules systems have lots of limitations, especially in identification of different characteristics of the image.
+
+* ALEXNET architecture changed the history of Computer Vision in 2012. ALEXNET was used for image classification with deep convolutional neural network on Imagenet dataset.
+
+* Merits of AlextNet:
+1. outperformed every traditional ML model (SVMs and Random Forest)
+2. showed training deep neural network is faster on GPU instead of CPU.
+3. used RELU instead of Sigmoid/tanh activation functions for faster training.
+4. dropout regularization --> reduced overfitting
+5. overlapping max pooling --> improve feature extraction
+6. data augmentation --> rotation, mirroring, random cropping.
+
+* Deep Learning Procedures:
+- Image Input --> Deep Neural Network --> Feature Extraction + Classification --> Predicted Output
+
+* Shallow Neural Network: consists of 1 or max 2 hidden layers.
+* Deep Neural Network: consists of multiple hidden layers.
+
+###############################################################################################################################################################
+Lecture 3: Introduction to Filters and Convolution
+
+* Notes Link: https://miro.com/app/board/uXjVIUaPG0Y=/?share_link_id=593132997072
+
+* https://ezyang.github.io/convolution-visualizer/index.html --> Convolution Visualizer for better visual explanation
+
+* Note: Adding Padding to the image helps maintain the same dimension of the image after applying filters (Kernels). Also Stride determines how many pixel steps will the filter jump
+
+# https://adamharley.com/nn_vis/cnn/3d.html --> 3D Visualization of CNN
+
+###############################################################################################################################################################
+Lecture 4: A Simple Linear Neural Network for Image Classification  ---> No Activation Function
+
+* Code Notebooks: Computer_Vision\1.Tensorflow_vs_Numpy.ipynb 
+		  Computer_Vision\2.Linear_NN_for_images.ipynb
+
+* Notes Link: https://miro.com/app/board/uXjVIPolTio=/?share_link_id=225966248894
+
+###############################################################################################################################################################
+Lecture 5: Deep Neural Network For Image Classification
+
+* Code Notebooks: Computer_Vision\3.Five_flowers_dataset.ipynb
+
+* Notes Link: https://miro.com/app/board/uXjVIPXuHKk=/?share_link_id=843762054496
+
+* Activation Function: allow the model to learn nonlinear relationships in the image data. eg RELU (Rectified Linear Unit), Sigmoid 
+
+###############################################################################################################################################################
+Lecture 6: Hyperparameter Tuning Like a PRO:  Weights & Biases (WandB) for Your  ML  Experiments 
+
+* Code Notebooks: Computer_Vision\4a.5_flower_dataset_Neural_Network.ipynb
+		 Computer_Vision\4b.Five_Flowers_ImageClassifcation.ipynb    ---> my edited notebook from the main notebook.
+
+* Notes Link: https://miro.com/app/board/uXjVICgM8TA=/?share_link_id=142770200927
+
+* You can make a report Weights and Biases.
+
+###############################################################################################################################################################
+Lecture 7: Overfit Prevention - Regularization, Dropuout, Early Stopping, Batch Normalization 
+
+* Code Notebooks: Computer_Vision\5.Five_flower_dataset_Neural_Network_regularization.ipynb
+
+* Notes Link: https://miro.com/app/board/uXjVIByBwVI=/?share_link_id=231943841648
+
+###############################################################################################################################################################
+Lecture 8: Transfer Learning - Pretrained Embedding, Fine-tuning, Differential Learning
+
+* Notes Link: https://miro.com/app/board/uXjVI9ZVABA=/?share_link_id=268989054435
+
+* Code Notebooks: Computer_Vision\6a.Transfer_learning_without_finetuning.ipynb
+		  Computer_Vision\6b.Transfer_learning_with_finetuning.ipynb
+     		  Computer_Vision\6c.Transfer_learning_+_finetuning_+_lr_schedule.ipynb
+		  Computer_Vision\6d.Copy_of_Transfer_learning_+_finetuning_+_differential_lr.ipynb
+
+###############################################################################################################################################################
+Lecture 9: AlexNet -  the Neural Network that transformed Computer Vision (Convolution, Pooling and Deep NN)
+
+* Notes Link: https://miro.com/app/board/uXjVI8dE4Uc=/?share_link_id=670176722548
+
+* Code Notebooks: Computer_Vision\7.AlexNet_PyTorch.ipynb
+
+* Convolution simply means dot product matrix multiplication of filters (kernels) and the pixels of an image.
+
+* Max Pooling is the selection of pixels with the highest values, to imporve feature extraction from the images' features.
+
+* Pytorch is easier to used for Alexnet. Check Notes for codes (both Pytorch and Keras)
+
+* Alexnet CNN Model is best for image data than the below subsequent Architecture.
+
+###############################################################################################################################################################
+Lecture 10: VGGNet - The Legendary Paper with 145k Citations threatened the Dominance of AlexNet
+
+* Notes Link: https://miro.com/app/board/uXjVI3a-yW4=/?share_link_id=114171442567
+
+* Code Notebook: Computer_Vision\8.VGG_PyTorch_5_flowers.ipynb
+
+###############################################################################################################################################################
+Lecture 11: GoogleNet  (aka Inception V1) - The  Legendary  CNN  Model  that ranked  #1  in  ImageNet  2014
+
+* Notes Link: https://miro.com/app/board/uXjVIpFFPZI=/?share_link_id=473186286983
+
+* Code Notebook: Computer_Vision\9.GoogleNet_PyTorch_5_flowers.ipynb
+
+###############################################################################################################################################################
+Lecture 12: The Story of SqueezeNet: Why Smaller CNNs Can Be Smarter?
+
+* Notes Link: https://miro.com/app/board/uXjVIo0AJQY=/?share_link_id=855263573673
+
+* Code Notebook: Computer_Vision\10.SqueezeNet_PyTorch_5_flowers.ipynb
+
+* CNN Comparison: Computer_Vision\10.cnn-comparison.jpeg
+
+* SqueezeNet is best CNN Architecture for Mobile devices and IOT (Internet of things)
+
+###############################################################################################################################################################
+Lecture 13: ResNet Explained - Vanishing Gradients and Skip Connections (Residual connections)
+
+* Notes Link: https://miro.com/app/board/uXjVIoT5zHA=/?share_link_id=68549353942
+
+* Code Notebook: Computer_Vision\11.ResNet_PyTorch_5_flowers.ipynb
+
+* Resnet is the best CNN model so far.
+
+###############################################################################################################################################################
+Lecture 14: MobileNet - Deep Learning CNN that fits in your Pocket.
+
+* Notes Link: https://miro.com/app/board/uXjVInu_S8E=/?share_link_id=758657095827
+
+* Code Notebook: Computer_Vision\12.MobileNet_PyTorch_5_flowers.ipynb
+
+###############################################################################################################################################################
+Lecture 15: DenseNet and EfficientNet - How CNNs were made better and better
+
+* Notes Link: https://miro.com/app/board/uXjVInTNVMA=/?share_link_id=750197935677
+
+* Code Notebook: Computer_Vision\13.DenseNet,_EfficNet,_Xception_PyTorch_5_flowers.ipynb
+
+* Not as good as RESNET
+
+###############################################################################################################################################################
+Lecture 16: Use Neural NETwork to Find a Good CNN Architecture - NASNET (Neural Architecture Search Network)
+
+* Notes Link: https://miro.com/app/board/uXjVImFmkiA=/?share_link_id=96999370757
+
+* Code Notebook: Computer_Vision\14.NASNet_large_PyTorch_5_flowers_ipynb.ipynb
+
+###############################################################################################################################################################
+Lecture 17: A Historical Journey through CNNs and Modern Computer Vision (2010-2015)
+
+The Evolution of CNN Architectures: From AlexNet to EfficientNet | Computer Vision from Scratch
+
+Welcome to this comprehensive lecture from our Computer Vision from Scratch series. In this standalone session, we take a deep dive into the evolution of convolutional neural networks (CNNs) that shaped the modern field of computer vision.
+
+Whether you are a complete beginner or a practicing ML researcher, this lecture will help you build a strong mental timeline of the most influential CNN models, understand why they were developed, and how they led to real-world breakthroughs such as self-driving cars, real-time object detection, and mobile AI.
+
+🌐 What This Lecture Covers
+This lecture offers a structured narrative of how computer vision transformed between 2010 and 2020, with a brief discussion of developments post-2020. You will learn:
+
+The pre-deep learning era of computer vision, dominated by handcrafted filters like Sobel, edge detectors, and classical ML models such as SVMs and decision trees.
+
+The revolution triggered by AlexNet (2012) - the architecture, innovations, and impact of winning the ImageNet challenge.
+
+How VGG-16 introduced the idea of deeper networks with uniform 3×3 convolutions, and why it became impractical for mobile applications.
+
+The game-changing concept of modular CNNs, starting with Inception V1 (GoogLeNet) and its use of multi-scale convolutional filters.
+
+ResNet (2015) and how it solved the vanishing gradient problem with skip connections, allowing training of ultra-deep networks like ResNet-50, ResNet-101, and beyond. The Neural Network learns the residuals between between each network, hereby adding such residuals to the initial input.
+
+Compact, efficient architectures like:
+
+SqueezeNet (2016) with its Fire modules, achieving AlexNet-level accuracy with 50x fewer parameters
+
+MobileNet V1 (2017) with depthwise separable convolutions, enabling deep learning on mobile devices
+
+The idea of dense connectivity in DenseNet, where every layer connects to all subsequent layers, further enhancing gradient flow.
+
+Neural Architecture Search (NASNet) - the use of reinforcement learning and RNNs to automatically discover high-performing CNN architectures.
+
+EfficientNet (2019) and its compound scaling approach, allowing structured growth in depth, width, and resolution for building highly scalable models.
+
+🧠 Key Concepts You Will Learn
+What modular CNN architectures are and how they differ from early models
+
+How deep learning models became more parameter-efficient and mobile-friendly
+
+Why ResNet is considered a foundational architecture for many modern models
+
+How NASNet and EfficientNet introduced automation and principled scaling into architecture design
+
+The role of competitions like ImageNet and COCO in driving architectural innovation
+
+The influence of companies like Google, Microsoft, Meta, and Tesla in shaping research and production deployment
+
+A brief outlook on post-2020 models including Vision Transformers, YOLOv7/8, and ConvNeXt
+
+🏆 Real-World Applications Covered
+Self-driving cars (Tesla, Waymo)
+
+Retail analytics using YOLO for object tracking
+
+Surveillance and smart cities
+
+Mobile AI using SqueezeNet and MobileNet
+
+Healthcare imaging, autonomous drones, and more
+
+📈 Benchmarks and Performance
+Throughout the lecture, we also reference our implementation results on the Five-Flowers Dataset:
+
+AlexNet: 90–95% accuracy
+
+VGG-16: Lower training speed, 75% training, 85% validation
+
+ResNet-50: Best performing
+
+MobileNet, SqueezeNet, and DenseNet: Excellent trade-offs between accuracy and model size
+
+NASNet: Computationally intensive, but powerful
+
+EfficientNet: Balanced performance with principled scaling
+
+🧭 Timeline of CNN Evolution
+A visual mental map is emphasized, helping you position models like:
+
+AlexNet (2012)
+
+VGG (2014)
+
+Inception (2014)
+
+ResNet (2015)
+
+SqueezeNet, YOLOv1, DenseNet (2016)
+
+MobileNet (2017)
+
+NASNet (2018)
+
+EfficientNet (2019)
+
+Vision Transformers, YOLOv8, ConvNeXt (2020+)
+
+🏛️ Influential Research and Conferences
+Top conferences: CVPR, ICCV, ECCV, NeurIPS, ICLR
+
+Top journals: JMLR, IEEE TPAMI, IJCV
+
+Most cited papers:
+
+ResNet (~280,000 citations)
+
+AlexNet (~170,000 citations)
+
+VGG (~80,000 citations)
+
+YOLOv1 (~30,000 citations)
+
+EfficientNet (~15,000 citations)
+
+* CNN Module Comparison: Computer_Vision\15.cnn_comparison.jpeg
+
+###############################################################################################################################################################
+Lecture 18: Introduction to Vision Transformers (ViT) - An Image is worth 16X16 Words
+
+What do CNNs, GPT-2, and Vision Transformers have in common?
+
+In this deep, visual, and intuitive lecture, we take you step-by-step from convolutional filters all the way to multi-head attention, and show you how Transformers — originally made for text — are now redefining how we process images.
+
+We start with CNNs:
+Why did they dominate for years? How do concepts like locality, weight sharing, and translation invariance actually work?
+And why do these same properties cause problems — like when a car on top of a building still gets detected confidently as “just a car”?
+
+You’ll see how small receptive fields, inductive bias, and vanishing gradients made CNNs both powerful and limited. Then we shift to transformers — and this is where things get really interesting.
+
+You’ll learn:
+
+What the GPT-2 architecture looks like internally
+
+How a sentence becomes tokens, each mapped to a 768-dimensional embedding
+
+How position embedding helps transformers understand word order
+
+What query, key, and value vectors do — and how they create the attention matrix
+
+Why we need multi-head attention (12 heads in GPT-2)
+
+What happens inside a transformer block, including Add & Norm, residual connections, and MLP layers
+
+How attention prevents peeking into the future using triangular masking
+
+Then we connect all of this to Vision Transformers (ViT) — introduced in the paper “An Image is Worth 16x16 Words” by Google Brain.
+
+🧠 You’ll understand:
+
+How an image is split into patches (e.g., 16x16)
+
+How each patch is flattened and turned into a 768-dimensional vector
+
+Why we add a CLS token at the start
+
+How position embeddings are added to patch embeddings
+
+How ViT uses transformer blocks (with the exact same components as text models)
+
+Why only the CLS token is used for final image classification
+
+How to modify the last layer for 5-class or 1000-class problems
+
+Why ViT generalizes better on large datasets compared to CNNs
+
+Throughout the lecture, we also refer to visualizations from poloclub.github.io, where you can interactively explore how transformer attention works.
+
+###############################################################################################################################################################
+Lecture 19: Coding a Vision Transformer From Scratch Using Pytorch
+
+* Code Notebook: Computer_Vision\16.Coding_vision_transformer_from_scratch.ipynb
+
+* Vision transformer Pics: Computer_Vision\16.vision_transformer.jpeg
+
+Notes:
+
+The basic idea behind transformers, such as those used in ChatGPT, is to split a sentence into words (or tokens) and then convert these tokens into vector representations. Those vector representations are used to predict the next word. Vision transformers are very similar in many aspects. In vision transformers, you divide an image into sub-images (also called patches). Then you create vector representations of each of these patches and add an additional vector called CLS token and pass them through something called multi-head attention (which is very similar to the attention used in transformers for text-based data). Finally, you use CLS token from the input for performing classification.
+
+In this lecture, we code a vision transformer completely from scratch using PyTorch. We divide the transformer into three parts.
+
+Part one is the embedding where the image is split into patches. Patches are converted into vector embeddings on top of these vector embeddings, at the beginning, we concatenate a CLS token and all of these tokens are added with the position embedding. 
+
+Part two is the transformer encoder which repeats itself in series. So we can define four transformer encoders in series. We can just define one transformer encoder. It depends on what we want to do. Inside this transformer encoder: - There are two layer normalizations - There are two places where there are residual connections which help us minimize vanishing gradient - There is also one multi-head attention Within the multi-head attention there are parallel layers of attention which process only a fraction of the dimension of the input patch embeddings.  At the output of the multi-head attention, these partial vectors are concatenated back to get the original input embedding dimension, and then these vectors are passed through a multi-layer perceptron to increase the representation capability. 
+
+Part three is the multi-layer perceptron (MLP) head, which performs the classification. Unlike text-based transformers, we are not going to predict the next batch. Typically, transformers perform next word prediction, but here we are trying to classify the image into one of the 10 or 5 (how many of our number of classes we want) classes we are using. For performing the classification, we only use the CLS tokens. So only the CLS token is passed through the MLP head for classification. 
+
+In this lecture, we build a vision transformer from scratch using PyTorch. We don't use any pre-trained model. We train the built vision transformer from scratch, and for the dataset, we use the famous MNIST dataset so that we are performing a 10-class classification. We get 96%+ training accuracy and similar validation accuracy which is on par with what many CNN's can do. With further hyperparameter tuning, we can even push this to 99% accuracy or beyond. 
+
+###############################################################################################################################################################
+Lecture 20: Hands On Computer Vision Bootcamp
+
+* No codes pasted in this video. Coding from Scratch myself
+- Computer_Vision\17.read_image.py    ---> read image
+- Computer_Vision\17.image_processing.py  -----> process image
+- Computer_Vision\17.annotation.py -----> draw bounding box on canvas image. The codes can be repeated on another image.
+- Computer_Vision\17.camera_detection.py--> camera detection and movement
+
+###############################################################################################################################################################
+Lecture 21: Object Tracking and Counting (OpenCV and YOLO)
+
+Codes: Computer_Vision\18.yolo_annoatation.py
+       Computer_Vision\18.yolo_camera_capture.py OR Computer_Vision\18.yolo_camera2.py  --> same capture but different codes.
+
+###############################################################################################################################################################
+Lecture 22: Object Detection Using R-CNN, Fast R-CNN, Faster R-CNN
+
+* R-CNN --> Region Convolutional Neural Network
+
+###############################################################################################################################################################
+Lecture 24: UNet - the 2015 model with 118k+ citations that changed segmentation
+
+###############################################################################################################################################################
+Lecture 26: Yolo Introduction (YOLO - You Only Look Once) 
+
+* YOLO improved on models like R-CNN, Faster R-CNN which look at an image multiple times, and draw many bounding boxes before detecting the image. Yolo looks at the image just once for detection.
+
+* Yolo involves dividing the image into matrix grid cells inorder to apply bounding boxes and confidence score for the output.
+
+* Confidence_score = intersection of image prediction * Probability of Class object. Mathematically, confi_score = image score * class object probability.
+
+###############################################################################################################################################################
+Lecture 27: YOLO + OCR (Object Character Recognition)
+
+* To read car number plate
+
+* https://universe.roboflow.com/roboflow-universe-projects/license-plate-recognition-rxg4e/dataset/13 --> Car Number Plate Dataset for finetuneing Yolo pretrained models.
+
+###############################################################################################################################################################
+Lecture 28: RoboFlow: Best Way to Build End-to-End Computer Vision Pipeline
+
+1. Create Project on RoboflowR
+2. Go to Upload data, and upload a short video
+3. Select how many frames you want to video divided into
+4. Click Save and Continue. This moves to next step -- Annotate.
+5. 
+
+* https://universe.roboflow.com/  ---->  Roboflow  Universe  to  download  dataset
+
+* Watch this video if you want to learn Roboflow usage.
+
+###############################################################################################################################################################
+Lecture 30: Build and Deploy Computer Vision Model for Fall Detection (RoboFlow and Streamlit) 
+
+* Go to Roboflow Universe to get the dataset for Fall Detection
+
+* Codes: Computer_Vision\19.fall_detection.py  ---> object dection script
+	 Computer_Vision\19.fall_detection_streamlit.py --> streamlit deployment code.
+
+###############################################################################################################################################################
+Lecture 31: Transformers for Vision and MultiModal LLMs (Just video lectures)
+
+###############################################################################################################################################################
+Lecture 43:
+
+Vison Language Models --> Multimodal models that handle image models, audio and videos with text data. eg. CLIP (Constrasctive Language Image Pretraining)
+
+VLMs = Vision Transformers (ViT) / Vision Encoders + Text Encoders (BERT). CNNs can be used instead of Visual transformers with Text Encoders.
+
+Computer_Vision\21.Vision Language Model.jpeg  -- VLM
+
+###############################################################################################################################################################
+Lecture 44: Constrastive Learning for Vision Language Models
+
+
+         
+
+
